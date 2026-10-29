@@ -638,7 +638,15 @@ export class MockBackend {
         string,
         unknown
       >;
-      const result = route[2]({ req, params: match.slice(1), body, query: url.searchParams, role });
+      const result = route[2]({
+        req,
+        params: match.slice(1),
+        body,
+        query: new URLSearchParams(
+          req.params.keys().flatMap((k) => req.params.getAll(k)!.map((v) => [k, v])),
+        ),
+        role,
+      });
       // Clone so callers never share references with the store.
       return of(
         new HttpResponse({

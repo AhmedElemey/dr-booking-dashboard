@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { Injector, inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 
 import { API_ROOT } from '../config/api-url';
@@ -11,7 +11,8 @@ import { ToastService } from './toast.service';
  * Registered before the auth interceptor so it sees the outcome after any token refresh.
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const toast = inject(ToastService);
+  // Resolved lazily: ToastService -> TranslateService -> HTTP loader -> this interceptor.
+  const injector = inject(Injector);
   return next(req).pipe(
     catchError((error: unknown) => {
       if (
@@ -19,7 +20,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         req.url.startsWith(API_ROOT) &&
         !req.context.get(SKIP_ERROR_TOAST)
       ) {
-        toast.error(error);
+        injector.get(ToastService).error(error);
       }
       return throwError(() => error);
     }),

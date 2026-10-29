@@ -140,7 +140,7 @@ export class AuthService {
   // ---- logout ----
 
   logout(): Observable<void> {
-    const request$ = this.accessToken() ? this.api.logout() : of(undefined);
+    const request$ = this.accessToken() ? this.api.logout(this.refreshToken) : of(undefined);
     return request$.pipe(
       catchError(() => of(undefined)),
       map(() => undefined),

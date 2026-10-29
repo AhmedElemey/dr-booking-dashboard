@@ -12,6 +12,7 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
+import { languageInterceptor } from './core/http/language.interceptor';
 import { LanguageService } from './core/i18n/language.service';
 import { mockInterceptors } from './core/mock/mock-providers';
 
@@ -22,7 +23,14 @@ export const appConfig: ApplicationConfig = {
     // Order matters: the error interceptor sits outside the auth interceptor so it only
     // reports failures that survive a token refresh. The mock backend (demo builds only)
     // is innermost and answers instead of the network.
-    provideHttpClient(withInterceptors([errorInterceptor, authInterceptor, ...mockInterceptors])),
+    provideHttpClient(
+      withInterceptors([
+        languageInterceptor,
+        errorInterceptor,
+        authInterceptor,
+        ...mockInterceptors,
+      ]),
+    ),
     provideTranslateService({
       loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
       fallbackLang: 'en',

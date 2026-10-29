@@ -29,10 +29,20 @@
       </button>
     </div>
     <h2 class="range">{{ rangeLabel() }}</h2>
+    <button
+      mat-icon-button
+      type="button"
+      [attr.aria-label]="'agenda.pickDate' | translate"
+      (click)="datePicker.showPicker()"
+    >
+      <mat-icon>edit_calendar</mat-icon>
+    </button>
     <input
+      #datePicker
       type="date"
       class="date-input"
-      [attr.aria-label]="'agenda.pickDate' | translate"
+      tabindex="-1"
+      aria-hidden="true"
       [ngModel]="anchor()"
       (ngModelChange)="setAnchor($event)"
     />

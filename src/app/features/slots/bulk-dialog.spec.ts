@@ -70,7 +70,7 @@ describe('BulkDialog', () => {
     expect(req.request.body).toEqual({
       fromDate: '2026-11-02',
       toDate: '2026-11-29',
-      daysOfWeek: [0, 1, 2, 3, 4, 6],
+      daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday'],
       startTime: '09:00',
       endTime: '14:00',
       slotMinutes: 30,

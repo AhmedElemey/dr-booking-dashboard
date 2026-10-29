@@ -7,9 +7,13 @@ export const DATE_KEY = 'yyyy-MM-dd';
 
 export type Lang = 'ar' | 'en';
 
-/** Parses an API instant (ISO 8601, `Z` or offset) into the clinic zone. */
+/** Parses an API instant (Arabic-Indic digits when the UI is Arabic) (ISO 8601, `Z` or offset) into the clinic zone. */
 export function inClinic(iso: string, tz: string, lang: Lang = 'en'): DateTime {
-  return DateTime.fromISO(iso, { zone: tz, locale: lang, numberingSystem: 'latn' });
+  return DateTime.fromISO(iso, {
+    zone: tz,
+    locale: lang,
+    numberingSystem: lang === 'ar' ? 'arab' : 'latn',
+  });
 }
 
 /** 24-hour wall-clock time in the clinic zone, e.g. `09:30`. */
@@ -37,23 +41,37 @@ export function formatRange(
 
 /** Clinic-local calendar date (`yyyy-MM-dd`) of an instant. */
 export function dateKeyOf(iso: string, tz: string): string {
-  return DateTime.fromISO(iso, { zone: tz }).toFormat(DATE_KEY);
+  return DateTime.fromISO(iso, { zone: tz, locale: 'en', numberingSystem: 'latn' }).toFormat(
+    DATE_KEY,
+  );
 }
 
 export function todayKey(tz: string, now: DateTime = DateTime.now()): string {
-  return now.setZone(tz).toFormat(DATE_KEY);
+  return now
+    .setZone(tz)
+    .setLocale('en')
+    .reconfigure({ numberingSystem: 'latn' })
+    .toFormat(DATE_KEY);
 }
 
 export function formatDateKey(key: string, pattern: string, lang: Lang = 'en'): string {
-  return DateTime.fromISO(key, { locale: lang, numberingSystem: 'latn' }).toFormat(pattern);
+  return DateTime.fromISO(key, {
+    locale: lang,
+    numberingSystem: lang === 'ar' ? 'arab' : 'latn',
+  }).toFormat(pattern);
+}
+
+/** Locale-independent parse of a `yyyy-MM-dd` key (always Latin digits). */
+function keyDate(key: string): DateTime {
+  return DateTime.fromISO(key, { locale: 'en', numberingSystem: 'latn' });
 }
 
 export function addDays(key: string, days: number): string {
-  return DateTime.fromISO(key).plus({ days }).toFormat(DATE_KEY);
+  return keyDate(key).plus({ days }).toFormat(DATE_KEY);
 }
 
 export function diffDays(fromKey: string, toKey: string): number {
-  return Math.round(DateTime.fromISO(toKey).diff(DateTime.fromISO(fromKey), 'days').days);
+  return Math.round(keyDate(toKey).diff(keyDate(fromKey), 'days').days);
 }
 
 /** Inclusive list of date keys. */
@@ -64,13 +82,13 @@ export function dateRange(fromKey: string, toKey: string): string[] {
 
 /** Egypt's week starts on Saturday. */
 export function startOfWeek(key: string): string {
-  const weekday = DateTime.fromISO(key).weekday; // 1 = Monday ... 7 = Sunday
+  const weekday = keyDate(key).weekday; // 1 = Monday ... 7 = Sunday
   return addDays(key, -((weekday - 6 + 7) % 7));
 }
 
 /** .NET `DayOfWeek` number for a date key: 0 = Sunday ... 6 = Saturday. */
 export function dayOfWeekNumber(key: string): number {
-  return DateTime.fromISO(key).weekday % 7;
+  return keyDate(key).weekday % 7;
 }
 
 /**

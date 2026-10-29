@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
@@ -140,7 +147,11 @@ export class DoctorsList {
   );
 
   constructor() {
-    this.api.specialties().subscribe((s) => this.specialties.set(s));
+    // Names come localized from the API, so reload them when the language changes.
+    effect(() => {
+      this.languages.language();
+      this.api.specialties().subscribe((s) => this.specialties.set(s));
+    });
     this.api.list().subscribe({
       next: (doctors) => {
         this.doctors.set(doctors);
@@ -155,7 +166,6 @@ export class DoctorsList {
   }
 
   protected specialtyName(d: Doctor): string {
-    const s = this.specialtyById().get(d.specialtyId);
-    return s ? localized(this.languages.language(), s.nameAr, s.nameEn) : '';
+    return this.specialtyById().get(d.specialtyId)?.name ?? '';
   }
 }

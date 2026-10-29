@@ -76,7 +76,11 @@ export class DoctorEditor {
   });
 
   constructor() {
-    this.api.specialties().subscribe((s) => this.specialties.set(s));
+    // Names come localized from the API, so reload them when the language changes.
+    effect(() => {
+      this.languages.language();
+      this.api.specialties().subscribe((s) => this.specialties.set(s));
+    });
     effect(() => {
       const id = this.id();
       this.api.get(id).subscribe((doctor) => this.applyDoctor(doctor));
@@ -104,7 +108,7 @@ export class DoctorEditor {
   }
 
   protected specialtyName(s: Specialty): string {
-    return localized(this.languages.language(), s.nameAr, s.nameEn);
+    return s.name;
   }
 
   protected serviceName(s: Service): string {

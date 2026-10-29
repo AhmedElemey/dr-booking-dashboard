@@ -37,8 +37,18 @@ describe('clinic time', () => {
   it('localizes weekday names but keeps Latin digits', () => {
     expect(formatDate('2026-11-02T07:00:00Z', CAIRO, 'en')).toBe('Mon 2 Nov');
     const ar = formatDate('2026-11-02T07:00:00Z', CAIRO, 'ar');
-    expect(ar).toMatch(/^[^\d]+ 2 [^\d]+$/);
-    expect(ar).toContain('الاثنين'.slice(0, 3));
+    expect(ar).toContain('٢');
+    expect(ar).not.toMatch(/\d/);
+  });
+
+  it('uses Arabic-Indic digits for times in Arabic but Latin in English', () => {
+    expect(formatTime('2026-12-01T07:00:00Z', CAIRO, 'ar')).toBe('٠٩:٠٠');
+    expect(formatTime('2026-12-01T07:00:00Z', CAIRO, 'en')).toBe('09:00');
+  });
+
+  it('keeps machine date keys Latin whatever the UI language', () => {
+    expect(dateKeyOf('2026-12-01T07:00:00Z', CAIRO)).toBe('2026-12-01');
+    expect(addDays('2026-12-01', 1)).toBe('2026-12-02');
   });
 
   it('computes today in the clinic zone, not UTC', () => {

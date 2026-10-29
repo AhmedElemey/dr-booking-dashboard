@@ -116,7 +116,9 @@ describe('AuthService', () => {
     auth.user.set(staff);
     localStorage.setItem(REFRESH_TOKEN_KEY, 'r');
     auth.logout().subscribe();
-    backend.expectOne(`${API_ROOT}/auth/logout`).flush(null, { status: 500, statusText: 'err' });
+    const logout = backend.expectOne(`${API_ROOT}/auth/logout`);
+    expect(logout.request.body).toEqual({ refreshToken: 'r' });
+    logout.flush(null, { status: 500, statusText: 'err' });
     expect(auth.isAuthenticated()).toBe(false);
     expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull();
   });

@@ -18,4 +18,4 @@ API base URLs are in `src/environments/` (`environment.prod.ts` is swapped in fo
 
 ## Demo (mock) mode
 
-`npm run ng -- serve --configuration mock` (or `npx ng build --configuration mock`) swaps in an in-memory fake API (a Cairo clinic, 3 doctors, a week of slots, ~12 appointments). Sign in with any phone and code `123456`: `01000000000` is the platform admin, `01011111111` a doctor, anything else clinic staff. The mock code is excluded from production builds via Angular file replacements.
+`npm run ng -- serve --configuration mock` (or `npx ng build --configuration mock`) swaps in an in-memory fake API (a Cairo clinic, 3 doctors, a week of slots, ~12 appointments). Sign in with any phone and code `123456`: `01000000001` is the platform admin, `01000000011` a doctor, anything else clinic staff. The mock code is excluded from production builds via Angular file replacements.

@@ -11,7 +11,6 @@ import { AdminApi } from '../../core/api/admin.api';
 import { DoctorsApi } from '../../core/api/doctors.api';
 import { AdminUser, Specialty } from '../../core/api/models';
 import { LanguageService } from '../../core/i18n/language.service';
-import { localized } from '../../core/i18n/localized';
 import { egyptPhoneValidator, normalizeEgyptPhone } from '../../core/validators/phone';
 
 export interface UserDialogData {
@@ -150,7 +149,7 @@ export class UserDialog {
   }
 
   protected specialtyName(s: Specialty): string {
-    return localized(this.languages.language(), s.nameAr, s.nameEn);
+    return s.name;
   }
 
   protected save(): void {

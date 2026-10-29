@@ -9,6 +9,7 @@ import { DateTime } from 'luxon';
 
 import ar from '../../public/i18n/ar.json';
 import en from '../../public/i18n/en.json';
+import { LanguageService } from '../app/core/i18n/language.service';
 import { Clock } from '../app/core/time/clock';
 
 /** Translation providers loaded with the real ar/en files, starting in `lang`. */
@@ -22,6 +23,7 @@ export function provideTestTranslations(
       translate.setTranslation('en', en);
       translate.setTranslation('ar', ar);
       translate.use(lang);
+      inject(LanguageService).use(lang);
     }),
   ];
 }

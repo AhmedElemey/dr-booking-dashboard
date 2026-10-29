@@ -1,4 +1,4 @@
-import { BulkSlotsRequest } from '../../core/api/models';
+import { BulkSlotsRequest, DayName } from '../../core/api/models';
 import {
   DATE_KEY,
   dateRange,
@@ -7,6 +7,17 @@ import {
   minutesOfDay,
 } from '../../core/time/clinic-time';
 import { DateTime } from 'luxon';
+
+/** .NET `DayOfWeek` numbers (0 = Sunday) to the day names the API expects. */
+const DAY_NAMES: DayName[] = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
 
 export const MAX_RANGE_DAYS = 92;
 export const MAX_SLOTS_PER_CALL = 2000;
@@ -127,7 +138,7 @@ export function toBulkRequest(value: BulkFormValue): BulkSlotsRequest {
   return {
     fromDate: value.fromDate,
     toDate: value.toDate,
-    daysOfWeek: [...value.daysOfWeek].sort((a, b) => a - b),
+    daysOfWeek: [...value.daysOfWeek].sort((a, b) => a - b).map((d) => DAY_NAMES[d]),
     startTime: value.startTime,
     endTime: value.endTime,
     slotMinutes: Number(value.slotMinutes),

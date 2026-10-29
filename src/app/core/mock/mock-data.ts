@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 
-import { AppointmentStatus, Clinic, Doctor, Service, Slot, Specialty } from '../api/models';
+import { AppointmentStatus, Clinic, Doctor, Service, Slot } from '../api/models';
 
 /** In-memory fixtures for the demo "mock" build: a Cairo clinic, 3 doctors, a week of slots. */
 
@@ -23,11 +23,19 @@ export interface MockPatient {
   phone: string;
 }
 
+export interface MockSpecialty {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+}
+
+export type MockService = Service & { doctorId: string };
+
 export interface MockState {
   clinics: Clinic[];
-  specialties: Specialty[];
+  specialties: MockSpecialty[];
   doctors: Doctor[];
-  services: Service[];
+  services: MockService[];
   slots: Slot[];
   appointments: MockAppointment[];
   patients: MockPatient[];
@@ -35,7 +43,7 @@ export interface MockState {
 
 export const CLINIC_ID = 'clinic-noor';
 
-const specialties: Specialty[] = [
+const specialties: MockSpecialty[] = [
   { id: 'sp-general', nameAr: 'طب الأسنان العام', nameEn: 'General Dentistry' },
   { id: 'sp-ortho', nameAr: 'تقويم الأسنان', nameEn: 'Orthodontics' },
   { id: 'sp-pedo', nameAr: 'أسنان الأطفال', nameEn: 'Pediatric Dentistry' },
@@ -126,7 +134,7 @@ const doctors: Doctor[] = [
   },
 ];
 
-const services: Service[] = [
+const services: MockService[] = [
   {
     id: 'sv-1',
     doctorId: 'doc-sara',

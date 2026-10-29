@@ -18,13 +18,11 @@
 }
 
 .date-input {
-  font: inherit;
-  padding-block: 6px;
-  padding-inline: 8px;
-  border: 1px solid var(--mat-sys-outline);
-  border-radius: 8px;
-  background: transparent;
-  color: inherit;
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .spacer {

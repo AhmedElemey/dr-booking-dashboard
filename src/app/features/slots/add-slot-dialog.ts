@@ -72,7 +72,7 @@ export interface AddSlotDialogData {
       grid-template-columns: repeat(3, 1fr);
       gap: 0 12px;
       padding-block-start: 8px;
-      min-inline-size: min(560px, 78vw);
+      min-inline-size: min(440px, 62vw);
     }
     .error {
       color: var(--mat-sys-error);

@@ -40,7 +40,7 @@ export interface TokenResponse {
   refreshToken: string;
   expiresIn: number;
   isNewUser?: boolean;
-  user?: CurrentUser;
+  user: CurrentUser;
 }
 
 // ---- Dashboard appointments ----------------------------------------------
@@ -97,15 +97,14 @@ export interface Doctor {
 
 export type UpdateDoctorRequest = Omit<Doctor, 'id' | 'clinicId' | 'slug' | 'photoUrl'>;
 
+/** Localized by the `Accept-Language` header (the API returns one `name`). */
 export interface Specialty {
   id: string;
-  nameAr: string;
-  nameEn: string;
+  name: string;
 }
 
 export interface Service {
   id: string;
-  doctorId: string;
   nameAr: string;
   nameEn: string;
   durationMinutes: number;
@@ -141,11 +140,14 @@ export interface CreateSlotRequest {
   endsAt: string;
 }
 
-/** `daysOfWeek` uses .NET `DayOfWeek` numbering: 0 = Sunday ... 6 = Saturday. */
+export type DayName =
+  'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+
+/** `daysOfWeek` are English day names (the API serializes enums as strings). */
 export interface BulkSlotsRequest {
   fromDate: string;
   toDate: string;
-  daysOfWeek: number[];
+  daysOfWeek: DayName[];
   startTime: string;
   endTime: string;
   slotMinutes: number;
@@ -154,6 +156,7 @@ export interface BulkSlotsRequest {
 export interface BulkSlotsResult {
   created: number;
   skipped: number;
+  skippedSlots?: { startsAt: string; endsAt: string; local: string; reason: string }[] | null;
 }
 
 export interface DeleteSlotsResult {
@@ -195,4 +198,6 @@ export interface AdminUser {
   fullName: string | null;
   role: Role;
   isActive: boolean;
+  clinicId?: string | null;
+  doctorId?: string | null;
 }

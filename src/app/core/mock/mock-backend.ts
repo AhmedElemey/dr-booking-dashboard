@@ -44,9 +44,10 @@ class ApiError extends Error {
   }
 }
 
-const DOCTOR_PHONE = '+201011111111';
-const ADMIN_PHONE = '+201000000000';
+const DOCTOR_PHONE = '+201000000011';
+const ADMIN_PHONE = '+201000000001';
 const DOCTOR_ID = 'doc-sara';
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export class MockBackend {
   state: MockState = createMockState();
@@ -122,6 +123,7 @@ export class MockBackend {
       slotId: slot.id,
       startsAt: slot.startsAt,
       endsAt: slot.endsAt,
+      startsAtLocal: DateTime.fromISO(slot.startsAt, { zone: MOCK_TZ }).toISO()!,
       timezone: MOCK_TZ,
       doctor: { id: doctor.id, name: doctor.nameEn },
       patient: { id: patient.id, fullName: patient.fullName, phone: patient.phone },
@@ -222,7 +224,15 @@ export class MockBackend {
     ['POST', /^\/auth\/logout$/, () => null],
     ['GET', /^\/me$/, ({ role }) => this.user(role)],
     ['PUT', /^\/me$/, ({ role, body }) => ({ ...this.user(role), ...body })],
-    ['GET', /^\/specialties$/, () => this.state.specialties],
+    [
+      'GET',
+      /^\/specialties$/,
+      ({ req }) =>
+        this.state.specialties.map((s) => ({
+          id: s.id,
+          name: req.headers.get('Accept-Language') === 'en' ? s.nameEn : s.nameAr,
+        })),
+    ],
 
     // dashboard appointments
     [
@@ -360,7 +370,9 @@ export class MockBackend {
       /^\/dashboard\/doctors\/([^/]+)\/services$/,
       ({ params, role }) => {
         const doctor = this.doctorOrThrow(params[0], role);
-        return this.state.services.filter((s) => s.doctorId === doctor.id);
+        return this.state.services
+          .filter((s) => s.doctorId === doctor.id)
+          .map((s) => ({ ...s, doctorId: undefined }));
       },
     ],
     [
@@ -589,7 +601,7 @@ export class MockBackend {
     const startMin = minutesOfDay(req.startTime)!;
     const endMin = minutesOfDay(req.endTime)!;
     for (const date of dateRange(req.fromDate, req.toDate)) {
-      if (!req.daysOfWeek.includes(dayOfWeekNumber(date))) continue;
+      if (!(req.daysOfWeek as string[]).includes(DAY_NAMES[dayOfWeekNumber(date)])) continue;
       for (let m = startMin; m + req.slotMinutes <= endMin; m += req.slotMinutes) {
         const time = (min: number) =>
           `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;

@@ -37,10 +37,10 @@ export class AuthApi {
     );
   }
 
-  logout(): Observable<void> {
+  logout(refreshToken: string | null): Observable<void> {
     return this.http.post<void>(
       apiUrl('/auth/logout'),
-      {},
+      { refreshToken },
       { context: new HttpContext().set(SKIP_ERROR_TOAST, true) },
     );
   }

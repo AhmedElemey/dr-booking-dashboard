@@ -1,5 +1,13 @@
 @use '@angular/material' as mat;
 
+@import '@fontsource/roboto/latin-400.css';
+@import '@fontsource/roboto/latin-500.css';
+@import '@fontsource/roboto/latin-700.css';
+@import '@fontsource/noto-sans-arabic/arabic-400.css';
+@import '@fontsource/noto-sans-arabic/arabic-500.css';
+@import '@fontsource/noto-sans-arabic/arabic-700.css';
+@import '@fontsource/material-icons/400.css';
+
 html {
   color-scheme: light;
   @include mat.theme(
@@ -11,9 +19,139 @@ html {
   );
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: Roboto, 'Noto Sans Arabic', sans-serif;
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
+  --ml-confirmed: #1b6ef3;
+  --ml-confirmed-bg: #e3edff;
+  --ml-completed: #1a7f45;
+  --ml-completed-bg: #dff3e6;
+  --ml-noshow: #a15c00;
+  --ml-noshow-bg: #fff0d6;
+  --ml-cancelled: #6b6f76;
+  --ml-cancelled-bg: #ececef;
+  --ml-open: #1a7f45;
+  --ml-open-bg: #e6f6ec;
+  --ml-reserved: #1b6ef3;
+  --ml-reserved-bg: #e3edff;
+  --ml-blocked: #6b6f76;
+  --ml-blocked-bg: #ececef;
+}
+
+// Arabic text reads better with the Arabic face first.
+[lang='ar'] body,
+html[lang='ar'] body {
+  font-family: 'Noto Sans Arabic', Roboto, sans-serif;
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'liga';
+}
+
+// Shared page chrome. Only logical properties so layouts flip with `dir`.
+.page {
+  padding-block: 24px;
+  padding-inline: 32px;
+  max-inline-size: 1400px;
+  margin-inline: auto;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-block-end: 20px;
+
+  h1 {
+    margin: 0;
+    font: var(--mat-sys-headline-small);
+    flex: 1;
+  }
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-block-end: 16px;
+
+  mat-form-field {
+    min-inline-size: 180px;
+  }
+}
+
+.panel {
+  background: var(--mat-sys-surface-container-lowest);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.ltr-text {
+  direction: ltr;
+  unicode-bidi: embed;
+  display: inline-block;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+
+  .full {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding-inline: 16px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.toast-success .mdc-snackbar__surface {
+  background: #1a7f45 !important;
+}
+
+.toast-error .mdc-snackbar__surface {
+  background: #b3261e !important;
+}
+
+.toast-success,
+.toast-error {
+  --mat-snack-bar-button-color: #fff;
+  --mat-snack-bar-supporting-text-color: #fff;
+}
+
+// Directional icons (chevrons, arrows) flip in right-to-left layouts.
+[dir='rtl'] .mirror {
+  transform: scaleX(-1);
 }

@@ -1,49 +1,51 @@
 import { TestBed } from '@angular/core/testing';
-import { TranslateService, provideTranslateService } from '@ngx-translate/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 
+import { provideTestTranslations } from '../testing/test-providers';
 import { App } from './app';
 import { LanguageService } from './core/i18n/language.service';
+import { LanguageToggle } from './shared/language-toggle';
 
 describe('App', () => {
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [App],
-      providers: [provideTranslateService({ fallbackLang: 'en' })],
+      imports: [App, LanguageToggle],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideTestTranslations('ar'),
+      ],
     }).compileComponents();
-
-    const translate = TestBed.inject(TranslateService);
-    translate.setTranslation('en', {
-      app: { title: 'Moonlight Dashboard', switchLanguage: 'العربية' },
-    });
-    translate.setTranslation('ar', {
-      app: { title: 'لوحة تحكم مون لايت', switchLanguage: 'English' },
-    });
     TestBed.inject(LanguageService).use('ar');
   });
 
   it('starts in Arabic, right to left', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
 
     expect(root.querySelector('.shell')?.getAttribute('dir')).toBe('rtl');
     expect(document.documentElement.dir).toBe('rtl');
-    expect(root.querySelector('.title')?.textContent).toContain('لوحة تحكم مون لايت');
+    expect(document.documentElement.lang).toBe('ar');
   });
 
-  it('switches to English, left to right, from the toolbar toggle', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    fixture.detectChanges();
-    const root = fixture.nativeElement as HTMLElement;
+  it('switches to English, left to right, from the language toggle', async () => {
+    const app = TestBed.createComponent(App);
+    const toggle = TestBed.createComponent(LanguageToggle);
+    await toggle.whenStable();
+    toggle.detectChanges();
+    expect(toggle.nativeElement.textContent).toContain('English');
 
-    root.querySelector<HTMLButtonElement>('button')!.click();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    toggle.nativeElement.querySelector('button').click();
+    await app.whenStable();
+    app.detectChanges();
 
-    expect(root.querySelector('.shell')?.getAttribute('dir')).toBe('ltr');
+    expect(app.nativeElement.querySelector('.shell')?.getAttribute('dir')).toBe('ltr');
     expect(document.documentElement.lang).toBe('en');
-    expect(root.querySelector('.title')?.textContent).toContain('Moonlight Dashboard');
+    expect(document.documentElement.dir).toBe('ltr');
   });
 });

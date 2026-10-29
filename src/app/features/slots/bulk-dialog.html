@@ -1,0 +1,174 @@
+<h2 mat-dialog-title>{{ 'bulk.title' | translate }}</h2>
+<mat-dialog-content>
+  <mat-tab-group animationDuration="0ms">
+    <mat-tab [label]="'bulk.tabAdd' | translate">
+      <div class="tab">
+        @if (addResult(); as result) {
+          <div class="result" role="status">
+            <mat-icon class="ok">check_circle</mat-icon>
+            <p>{{ 'bulk.created' | translate: { count: result.created } }}</p>
+            @if (result.skipped > 0) {
+              <p class="muted">{{ 'bulk.skipped' | translate: { count: result.skipped } }}</p>
+            }
+          </div>
+        } @else {
+          <p class="muted intro">{{ 'bulk.intro' | translate }}</p>
+          <div class="grid">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'bulk.fromDate' | translate }}</mat-label>
+              <input
+                matInput
+                type="date"
+                [ngModel]="fromDate()"
+                (ngModelChange)="fromDate.set($event)"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'bulk.toDate' | translate }}</mat-label>
+              <input
+                matInput
+                type="date"
+                [ngModel]="toDate()"
+                (ngModelChange)="toDate.set($event)"
+              />
+            </mat-form-field>
+          </div>
+
+          <fieldset>
+            <legend>{{ 'bulk.days' | translate }}</legend>
+            <div class="days">
+              @for (d of weekdays; track d.value) {
+                <mat-checkbox
+                  [checked]="days().includes(d.value)"
+                  (change)="toggleDay(d.value, $event.checked)"
+                >
+                  {{ 'days.' + d.key | translate }}
+                </mat-checkbox>
+              }
+            </div>
+          </fieldset>
+
+          <div class="grid three">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'bulk.startTime' | translate }}</mat-label>
+              <input
+                matInput
+                type="time"
+                step="900"
+                [ngModel]="startTime()"
+                (ngModelChange)="startTime.set($event)"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'bulk.endTime' | translate }}</mat-label>
+              <input
+                matInput
+                type="time"
+                step="900"
+                [ngModel]="endTime()"
+                (ngModelChange)="endTime.set($event)"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'bulk.slotMinutes' | translate }}</mat-label>
+              <mat-select [value]="slotMinutes()" (selectionChange)="slotMinutes.set($event.value)">
+                @for (m of lengths; track m) {
+                  <mat-option [value]="m">{{ m }} {{ 'common.min' | translate }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          @if (data.services.length > 0) {
+            <div class="prefill">
+              <span class="muted">{{ 'bulk.prefill' | translate }}</span>
+              @for (s of data.services; track s.id) {
+                <button mat-stroked-button type="button" (click)="applyService(s)">
+                  {{ serviceLabel(s) }}
+                </button>
+              }
+            </div>
+          }
+
+          @if (submitted() && issues().length > 0) {
+            <ul class="issues" role="alert">
+              @for (issue of issues(); track issue) {
+                <li>{{ 'bulk.error.' + issue | translate }}</li>
+              }
+            </ul>
+          }
+
+          <p class="preview" aria-live="polite">
+            <mat-icon>info</mat-icon>
+            @if (issues().length === 0) {
+              {{ 'bulk.preview' | translate: { slots: estimate().slots, days: estimate().days } }}
+            } @else {
+              {{ 'bulk.previewInvalid' | translate }}
+            }
+          </p>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab [label]="'bulk.tabRemove' | translate">
+      <div class="tab">
+        @if (removeResult(); as result) {
+          <div class="result" role="status">
+            <mat-icon class="ok">check_circle</mat-icon>
+            <p>{{ 'bulk.deleted' | translate: { count: result.deleted } }}</p>
+            @if (result.skippedReserved > 0) {
+              <p class="muted">
+                {{ 'bulk.skippedReserved' | translate: { count: result.skippedReserved } }}
+              </p>
+            }
+          </div>
+        } @else {
+          <p class="muted intro">{{ 'bulk.removeIntro' | translate }}</p>
+          <div class="grid">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'bulk.fromDate' | translate }}</mat-label>
+              <input
+                matInput
+                type="date"
+                [ngModel]="removeFrom()"
+                (ngModelChange)="removeFrom.set($event)"
+              />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'bulk.toDate' | translate }}</mat-label>
+              <input
+                matInput
+                type="date"
+                [ngModel]="removeTo()"
+                (ngModelChange)="removeTo.set($event)"
+              />
+            </mat-form-field>
+          </div>
+          <p class="warn"><mat-icon>warning</mat-icon>{{ 'bulk.removeWarning' | translate }}</p>
+          @if (!removeValid()) {
+            <p class="error" role="alert">{{ 'bulk.error.dates' | translate }}</p>
+          }
+          <button
+            mat-flat-button
+            type="button"
+            class="danger"
+            [disabled]="!removeValid() || removing()"
+            (click)="remove()"
+          >
+            {{ 'bulk.removeAction' | translate }}
+          </button>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" [mat-dialog-close]="changed()">
+    {{ 'common.close' | translate }}
+  </button>
+  @if (!addResult()) {
+    <button mat-flat-button type="button" (click)="add()" [disabled]="saving()">
+      {{ 'bulk.addAction' | translate }}
+    </button>
+  }
+</mat-dialog-actions>

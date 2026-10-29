@@ -1,0 +1,106 @@
+<div class="page">
+  <div class="page-title">
+    <h1>{{ 'admin.clinics' | translate }}</h1>
+    <button mat-flat-button type="button" (click)="addClinic()">
+      <mat-icon>add</mat-icon>{{ 'admin.addClinic' | translate }}
+    </button>
+  </div>
+
+  <section class="panel">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">{{ 'admin.col.clinic' | translate }}</th>
+          <th scope="col">{{ 'clinic.city' | translate }}</th>
+          <th scope="col">{{ 'clinic.phone' | translate }}</th>
+          <th scope="col">{{ 'clinic.timezone' | translate }}</th>
+          <th scope="col">{{ 'admin.col.active' | translate }}</th>
+          <th scope="col">
+            <span class="sr-only">{{ 'common.actions' | translate }}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of clinics(); track c.id) {
+          <tr [class.inactive]="!c.isActive">
+            <td>
+              <strong>{{ name(c) }}</strong>
+            </td>
+            <td>{{ c.city }}</td>
+            <td>
+              <span class="ltr-text">{{ c.phone }}</span>
+            </td>
+            <td>
+              <span class="ltr-text">{{ c.timezone }}</span>
+            </td>
+            <td>
+              <mat-slide-toggle
+                [checked]="c.isActive"
+                (change)="setActive(c, $event.checked)"
+                [attr.aria-label]="'admin.col.active' | translate"
+              />
+            </td>
+            <td class="end">
+              <button mat-stroked-button type="button" (click)="addUser(c)">
+                <mat-icon>person_add</mat-icon>{{ 'admin.addUser' | translate }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading()) {
+            <tr>
+              <td colspan="6" class="muted empty">{{ 'admin.noClinics' | translate }}</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+    <mat-paginator
+      [length]="total()"
+      [pageIndex]="page() - 1"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+      [hidePageSize]="false"
+    />
+  </section>
+
+  <h2 class="section">{{ 'admin.users' | translate }}</h2>
+  <section class="panel box">
+    @if (createdUsers().length === 0) {
+      <p class="muted">{{ 'admin.usersEmpty' | translate }}</p>
+    } @else {
+      <ul class="users">
+        @for (u of createdUsers(); track u.id) {
+          <li>
+            <div>
+              <strong>{{ u.fullName }}</strong>
+              <span class="muted"> · {{ 'roles.' + u.role | translate }} · {{ u.clinicName }}</span>
+              <div class="ltr-text muted">{{ u.phone }}</div>
+            </div>
+            <mat-slide-toggle [checked]="u.isActive" (change)="setUserActive(u, $event.checked)">
+              {{ 'admin.col.active' | translate }}
+            </mat-slide-toggle>
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="by-id">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'admin.userId' | translate }}</mat-label>
+        <input matInput name="userId" dir="ltr" [(ngModel)]="userIdToToggle" />
+        <mat-hint>{{ 'admin.userIdHint' | translate }}</mat-hint>
+      </mat-form-field>
+      <button mat-stroked-button type="button" (click)="toggleById(false)">
+        {{ 'admin.deactivate' | translate }}
+      </button>
+      <button mat-stroked-button type="button" (click)="toggleById(true)">
+        {{ 'admin.reactivate' | translate }}
+      </button>
+    </div>
+  </section>
+</div>

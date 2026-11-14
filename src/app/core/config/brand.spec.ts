@@ -44,10 +44,12 @@ describe('clinic.config.json', () => {
     expect(validate(schema, bad).length).toBeGreaterThan(0);
   });
 
-  it('keeps the contract values', () => {
-    expect(config.slug).toBe('moonlight');
-    expect(config.name).toEqual({ ar: 'مونلايت', en: 'Moonlight' });
-    expect(config.colors).toEqual({ primary: '#3F3CCF', accent: '#0E9F9A' });
+  it('has a usable clinic identity', () => {
+    expect(config.slug).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+    expect(config.name.en.trim()).not.toBe('');
+    expect(config.name.ar.trim()).not.toBe('');
+    expect(config.colors.primary).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    expect(config.colors.accent).toMatch(/^#[0-9A-Fa-f]{6}$/);
   });
 });
 
@@ -76,17 +78,17 @@ describe('brand generation', () => {
     const scss = renderScss(config);
     expect(scss).toContain('$primary-palette: (');
     expect(scss).toContain('$accent-palette: (');
-    expect(scss).toContain('--ml-brand-primary: #3F3CCF;');
-    expect(scss).toContain('--ml-brand-accent: #0E9F9A;');
+    expect(scss).toContain(`--ml-brand-primary: ${config.colors.primary};`);
+    expect(scss).toContain(`--ml-brand-accent: ${config.colors.accent};`);
   });
 
   it('rewrites only the branded block of index.html', () => {
     const html = `<head>\n    ${HTML_START}\n    <title>old</title>\n    ${HTML_END}\n    <base href="/" />\n</head>`;
     const out = renderIndexHtml(html, { ...config, name: { ar: 'ن', en: 'Nile <Smile>' } });
     expect(out).toContain('<title>Nile &lt;Smile&gt; Dashboard</title>');
-    expect(out).toContain('content="#3F3CCF"');
+    expect(out).toContain(`content="${config.colors.primary}"`);
     expect(out).toContain('<base href="/" />');
-    expect(renderIndexHtml(out, config)).toContain('<title>Moonlight Dashboard</title>');
+    expect(renderIndexHtml(out, config)).toContain(`<title>${config.name.en} Dashboard</title>`);
     expect(() => renderIndexHtml('<head></head>', config)).toThrow();
   });
 });

@@ -18,6 +18,8 @@ export interface ProblemDetails {
   title?: string;
   status: number;
   code?: string;
+  /** With code FEATURE_DISABLED: the switched-off feature key. */
+  feature?: string;
   detail?: string;
   traceId?: string;
   errors?: Record<string, string[]>;

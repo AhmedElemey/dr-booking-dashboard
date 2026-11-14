@@ -6,13 +6,14 @@ import {
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
-import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { languageInterceptor } from './core/http/language.interceptor';
+import { FeaturesService } from './core/config/features.service';
+import { BrandedTranslateLoader } from './core/i18n/branded-loader';
 import { LanguageService } from './core/i18n/language.service';
 import { mockInterceptors } from './core/mock/mock-providers';
 
@@ -32,8 +33,12 @@ export const appConfig: ApplicationConfig = {
       ]),
     ),
     provideTranslateService({
-      loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
+      loader: { provide: TranslateLoader, useClass: BrandedTranslateLoader },
       fallbackLang: 'en',
+    }),
+    provideAppInitializer(() => {
+      // Not awaited: the cached or default switches apply until the first answer arrives.
+      inject(FeaturesService).start();
     }),
     provideAppInitializer(() => {
       const languages = inject(LanguageService);

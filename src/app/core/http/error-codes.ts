@@ -19,6 +19,7 @@ export const KNOWN_ERROR_CODES = [
   'PHONE_IN_USE',
   'BOOKING_LIMIT',
   'RATE_LIMITED',
+  'FEATURE_DISABLED',
   'INTERNAL_ERROR',
 ] as const;
 

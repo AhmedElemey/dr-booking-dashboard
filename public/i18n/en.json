@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Moonlight",
-    "title": "Moonlight Dashboard",
+    "name": "{{brand}}",
+    "title": "{{brand}} Dashboard",
     "switchLanguage": "العربية"
   },
   "common": {
@@ -92,8 +92,23 @@
     "RATE_LIMITED": "Too many attempts. Please wait a moment and try again.",
     "INTERNAL_ERROR": "Something went wrong on our side. Please try again.",
     "NETWORK": "Cannot reach the server. Check your connection.",
-    "ROLE_NOT_ALLOWED": "This account cannot use the clinic dashboard. Patients should use the Moonlight app.",
+    "ROLE_NOT_ALLOWED": "This account cannot use the clinic dashboard. Patients should use the {{brand}} app.",
+    "FEATURE_DISABLED": "\"{{feature}}\" is switched off for this clinic. Ask the platform administrator to turn it on.",
     "UNKNOWN": "Something went wrong. Please try again."
+  },
+  "features": {
+    "dismiss": "Dismiss",
+    "disabledBanner": "\"{{feature}}\" is switched off for this clinic, so that action is not available.",
+    "names": {
+      "mobileApp": "Mobile app",
+      "website": "Website booking",
+      "guestBrowsing": "Guest browsing",
+      "patientSelfService": "Patient self-service",
+      "pushReminders": "Push reminders",
+      "smsNotifications": "SMS notifications",
+      "englishLanguage": "English language",
+      "multiBranch": "Multiple branches"
+    }
   },
   "account": {
     "name": "Name",

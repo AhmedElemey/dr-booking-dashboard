@@ -13,6 +13,7 @@ import { filter } from 'rxjs';
 
 import { AdminApi } from '../../core/api/admin.api';
 import { AdminUser, Clinic } from '../../core/api/models';
+import { FeaturesService } from '../../core/config/features.service';
 import { ToastService } from '../../core/http/toast.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
@@ -43,6 +44,7 @@ export class AdminClinics {
   private readonly api = inject(AdminApi);
   private readonly dialog = inject(MatDialog);
   private readonly toast = inject(ToastService);
+  protected readonly features = inject(FeaturesService);
   private readonly languages = inject(LanguageService);
 
   protected readonly clinics = signal<Clinic[]>([]);

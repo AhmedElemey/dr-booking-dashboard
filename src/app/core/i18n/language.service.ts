@@ -1,7 +1,10 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Direction, Directionality } from '@angular/cdk/bidi';
 import { TranslateService } from '@ngx-translate/core';
+import { tap } from 'rxjs';
+
+import { FeaturesService } from '../config/features.service';
 
 export type AppLanguage = 'ar' | 'en';
 
@@ -12,12 +15,21 @@ export class LanguageService {
   private readonly translate = inject(TranslateService);
   private readonly document = inject(DOCUMENT);
   private readonly directionality = inject(Directionality);
+  private readonly features = inject(FeaturesService);
 
   readonly language = signal<AppLanguage>('ar');
   readonly direction = computed<Direction>(() => (this.language() === 'ar' ? 'rtl' : 'ltr'));
 
+  constructor() {
+    // englishLanguage off: the clinic is Arabic only, whatever was remembered or switched to.
+    effect(() => {
+      if (!this.features.englishLanguage() && this.language() !== 'ar') this.use('ar');
+    });
+  }
+
   /** The remembered language (a per-browser convenience), Arabic by default. */
   stored(): AppLanguage {
+    if (!this.features.englishLanguage()) return 'ar';
     try {
       return localStorage.getItem(LANGUAGE_KEY) === 'en' ? 'en' : 'ar';
     } catch {
@@ -37,7 +49,13 @@ export class LanguageService {
     } catch {
       // Storage unavailable: the choice just is not remembered.
     }
-    return this.translate.use(language);
+    return this.translate.use(language).pipe(
+      tap(() => {
+        // Same text as the page title (also set at build time for the first paint).
+        const title = this.translate.instant('app.title');
+        if (title && title !== 'app.title') this.document.title = title;
+      }),
+    );
   }
 
   toggle(): void {

@@ -9,6 +9,7 @@ import { DateTime } from 'luxon';
 
 import ar from '../../public/i18n/ar.json';
 import en from '../../public/i18n/en.json';
+import { applyBrand } from '../app/core/config/brand';
 import { LanguageService } from '../app/core/i18n/language.service';
 import { Clock } from '../app/core/time/clock';
 
@@ -20,8 +21,8 @@ export function provideTestTranslations(
     provideTranslateService({ fallbackLang: 'en' }),
     provideEnvironmentInitializer(() => {
       const translate = inject(TranslateService);
-      translate.setTranslation('en', en);
-      translate.setTranslation('ar', ar);
+      translate.setTranslation('en', applyBrand(en, 'en'));
+      translate.setTranslation('ar', applyBrand(ar, 'ar'));
       translate.use(lang);
       inject(LanguageService).use(lang);
     }),

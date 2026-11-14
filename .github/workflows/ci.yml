@@ -15,6 +15,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run brand:check
       - run: npx ng lint
       - run: npx ng test --watch=false
       - run: npx ng build --configuration production

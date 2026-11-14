@@ -1,7 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatIconButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
@@ -14,6 +14,8 @@ import { map } from 'rxjs';
 import { LanguageToggle } from '../../shared/language-toggle';
 import { Role } from '../api/models';
 import { AuthService } from '../auth/auth.service';
+import { BrandService } from '../config/brand.service';
+import { FeaturesService } from '../config/features.service';
 import { ClinicTime } from '../time/clinic-time.service';
 
 interface NavItem {
@@ -37,6 +39,7 @@ const STAFF_ROLES: Role[] = ['Doctor', 'ClinicStaff'];
     MatListModule,
     MatIcon,
     MatIconButton,
+    MatButton,
     MatMenuModule,
     TranslatePipe,
     LanguageToggle,
@@ -48,6 +51,8 @@ const STAFF_ROLES: Role[] = ['Doctor', 'ClinicStaff'];
 export class Shell implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly clinicTime = inject(ClinicTime);
+  protected readonly brand = inject(BrandService);
+  protected readonly features = inject(FeaturesService);
 
   protected readonly narrow = toSignal(
     inject(BreakpointObserver)

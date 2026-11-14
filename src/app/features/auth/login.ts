@@ -12,6 +12,7 @@ import { interval, take } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { homeFor } from '../../core/auth/guards';
+import { BrandService } from '../../core/config/brand.service';
 import { errorCode, errorMessageKey } from '../../core/http/error-codes';
 import { egyptPhoneValidator, normalizeEgyptPhone } from '../../core/validators/phone';
 import { LanguageToggle } from '../../shared/language-toggle';
@@ -41,6 +42,7 @@ const RESEND_SECONDS = 60;
 export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  protected readonly brand = inject(BrandService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);

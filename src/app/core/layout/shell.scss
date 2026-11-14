@@ -17,6 +17,30 @@
   color: var(--mat-sys-primary);
 }
 
+.logo {
+  inline-size: 28px;
+  block-size: 28px;
+}
+
+.toolbar-title {
+  font: var(--mat-sys-title-medium);
+  color: var(--mat-sys-primary);
+}
+
+.feature-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 8px;
+  padding-inline: 24px;
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+
+  .text {
+    flex: 1;
+  }
+}
+
 .toolbar {
   position: sticky;
   inset-block-start: 0;

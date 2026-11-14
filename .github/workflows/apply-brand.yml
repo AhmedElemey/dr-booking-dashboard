@@ -1,0 +1,39 @@
+name: Apply brand
+
+# A clinic's clinic.config.json (and logo) may be committed without running node, for example
+# through the GitHub API. This regenerates the brand files and commits them back.
+on:
+  push:
+    branches: [main]
+    paths:
+      - clinic.config.json
+      - clinic.config.schema.json
+      - branding/**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/brand.mjs
+      - name: Commit generated files
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Generated files already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Apply brand from clinic.config.json"
+          git push

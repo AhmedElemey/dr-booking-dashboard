@@ -15,7 +15,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Pull requests must carry up-to-date generated files. On main they are regenerated here,
+      # because a config committed through the API is fixed up afterwards by apply-brand.yml.
       - run: npm run brand:check
+        if: github.event_name == 'pull_request'
+      - run: npm run brand
+        if: github.event_name != 'pull_request'
       - run: npx ng lint
       - run: npx ng test --watch=false
       - run: npx ng build --configuration production

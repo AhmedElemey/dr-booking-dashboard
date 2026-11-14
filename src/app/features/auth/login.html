@@ -1,0 +1,90 @@
+<div class="login-page">
+  <div class="lang"><app-language-toggle /></div>
+
+  <main class="card">
+    <div class="brand">
+      <mat-icon class="logo" aria-hidden="true">nights_stay</mat-icon>
+      <h1>{{ 'app.name' | translate }}</h1>
+      <p class="muted">{{ 'login.subtitle' | translate }}</p>
+    </div>
+
+    @if (step() === 'phone') {
+      <form [formGroup]="phoneForm" (ngSubmit)="sendCode()" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'login.phone' | translate }}</mat-label>
+          <input
+            matInput
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            formControlName="phone"
+            class="ltr-input"
+            placeholder="01X XXXX XXXX"
+          />
+          <mat-icon matSuffix>phone</mat-icon>
+          <mat-hint>{{ 'login.phoneHint' | translate }}</mat-hint>
+          @if (phoneForm.controls.phone.hasError('required')) {
+            <mat-error>{{ 'validation.required' | translate }}</mat-error>
+          } @else if (phoneForm.controls.phone.hasError('egyptPhone')) {
+            <mat-error>{{ 'validation.egyptPhone' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (errorKey(); as key) {
+          <p class="error" role="alert">{{ key | translate }}</p>
+        }
+
+        <button mat-flat-button type="submit" class="submit" [disabled]="busy()">
+          @if (busy()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            {{ 'login.sendCode' | translate }}
+          }
+        </button>
+      </form>
+    } @else {
+      <form [formGroup]="codeForm" (ngSubmit)="verify()" novalidate>
+        <p class="muted">{{ 'login.codeSent' | translate }}</p>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'login.code' | translate }}</mat-label>
+          <input
+            matInput
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+            formControlName="code"
+            class="ltr-input code-input"
+          />
+          @if (codeForm.controls.code.invalid && codeForm.controls.code.touched) {
+            <mat-error>{{ 'validation.otpFormat' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (errorKey(); as key) {
+          <p class="error" role="alert">{{ key | translate }}</p>
+        }
+
+        <button mat-flat-button type="submit" class="submit" [disabled]="busy()">
+          @if (busy()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            {{ 'login.signIn' | translate }}
+          }
+        </button>
+
+        <div class="secondary">
+          <button mat-button type="button" (click)="back()">
+            {{ 'login.changeNumber' | translate }}
+          </button>
+          <button mat-button type="button" [disabled]="resendIn() > 0 || busy()" (click)="resend()">
+            @if (resendIn() > 0) {
+              {{ 'login.resendIn' | translate: { seconds: resendIn() } }}
+            } @else {
+              {{ 'login.resend' | translate }}
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </main>
+</div>

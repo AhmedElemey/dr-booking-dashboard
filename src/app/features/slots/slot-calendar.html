@@ -1,0 +1,159 @@
+<div class="page">
+  <div class="page-title">
+    <h1>{{ 'slots.title' | translate }}</h1>
+    <button mat-stroked-button type="button" (click)="openBulk()" [disabled]="!selectedDoctorId()">
+      <mat-icon>date_range</mat-icon>{{ 'slots.bulk' | translate }}
+    </button>
+    <button mat-flat-button type="button" (click)="addSlot()" [disabled]="!selectedDoctorId()">
+      <mat-icon>add</mat-icon>{{ 'slots.add' | translate }}
+    </button>
+  </div>
+
+  <div class="nav-row">
+    @if (doctors().length > 1) {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'agenda.doctor' | translate }}</mat-label>
+        <mat-select
+          [value]="selectedDoctorId()"
+          (selectionChange)="selectedDoctorId.set($event.value)"
+        >
+          @for (d of doctors(); track d.id) {
+            <mat-option [value]="d.id">{{ doctorName(d) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+    <div class="nav-buttons">
+      <button
+        mat-icon-button
+        type="button"
+        [attr.aria-label]="'agenda.previous' | translate"
+        (click)="shift(-1)"
+      >
+        <mat-icon class="mirror">chevron_left</mat-icon>
+      </button>
+      <button mat-stroked-button type="button" (click)="goToday()">
+        {{ 'agenda.today' | translate }}
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        [attr.aria-label]="'agenda.next' | translate"
+        (click)="shift(1)"
+      >
+        <mat-icon class="mirror">chevron_right</mat-icon>
+      </button>
+    </div>
+    <h2 class="range">{{ rangeLabel() }}</h2>
+    <span class="spacer"></span>
+    <ul class="legend" [attr.aria-label]="'slots.legend' | translate">
+      @for (s of legend; track s) {
+        <li>
+          <span class="dot" [class]="'dot ' + s.toLowerCase()"></span
+          >{{ 'status.' + s | translate }}
+        </li>
+      }
+    </ul>
+    <mat-button-toggle-group
+      [value]="view()"
+      (change)="view.set($event.value)"
+      [attr.aria-label]="'agenda.view' | translate"
+    >
+      <mat-button-toggle value="day">{{ 'agenda.day' | translate }}</mat-button-toggle>
+      <mat-button-toggle value="week">{{ 'agenda.week' | translate }}</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <section class="panel">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    <div class="columns" [class.single]="view() === 'day'">
+      @for (col of columns(); track col.key) {
+        <div class="column" [class.today]="col.key === clinicTime.today()">
+          <header>
+            <button type="button" class="day-link" (click)="selectDay(col.key)">
+              <span class="dow">{{ clinicTime.keyLabel(col.key, 'ccc') }}</span>
+              <span class="dom">{{ clinicTime.keyLabel(col.key, 'd LLL') }}</span>
+            </button>
+            <span class="muted tally">
+              {{ countOf(col, 'Open') }} / {{ countOf(col, 'Reserved') }} /
+              {{ countOf(col, 'Blocked') }}
+            </span>
+          </header>
+          <div class="slot-list">
+            @for (slot of col.slots; track slot.id) {
+              @if (slot.status === 'Reserved') {
+                <button
+                  type="button"
+                  class="slot reserved"
+                  [class.past]="isPast(slot)"
+                  (click)="openSlot(slot)"
+                  [attr.aria-label]="
+                    clinicTime.time(slot.startsAt) +
+                    ' ' +
+                    ('status.Reserved' | translate) +
+                    ' ' +
+                    (slot.patientName ?? '')
+                  "
+                >
+                  <span class="t ltr-text">{{ clinicTime.time(slot.startsAt) }}</span>
+                  <span class="who">{{ slot.patientName }}</span>
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="slot"
+                  [class]="'slot ' + slot.status.toLowerCase()"
+                  [class.past]="isPast(slot)"
+                  [disabled]="isPast(slot)"
+                  [matMenuTriggerFor]="slotMenu"
+                  [matMenuTriggerData]="{ slot: slot }"
+                  [attr.aria-label]="
+                    clinicTime.time(slot.startsAt) + ' ' + ('status.' + slot.status | translate)
+                  "
+                >
+                  <span class="t ltr-text">{{ clinicTime.time(slot.startsAt) }}</span>
+                  @if (slot.status === 'Blocked') {
+                    <mat-icon class="mini">block</mat-icon>
+                  }
+                </button>
+              }
+            } @empty {
+              <span class="none muted">{{ 'slots.none' | translate }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <mat-menu #slotMenu="matMenu">
+    <ng-template matMenuContent let-slot="slot">
+      <div class="menu-head ltr-text">
+        {{ clinicTime.range(slot.startsAt, slot.endsAt) }}
+      </div>
+      @if (slot.status === 'Open') {
+        <button mat-menu-item type="button" (click)="block(slot)">
+          <mat-icon>block</mat-icon><span>{{ 'slots.block' | translate }}</span>
+        </button>
+      }
+      @if (slot.status === 'Blocked') {
+        <button mat-menu-item type="button" (click)="unblock(slot)">
+          <mat-icon>lock_open</mat-icon><span>{{ 'slots.unblock' | translate }}</span>
+        </button>
+      }
+      <button mat-menu-item type="button" (click)="remove(slot)">
+        <mat-icon>delete_outline</mat-icon><span>{{ 'slots.remove' | translate }}</span>
+      </button>
+    </ng-template>
+  </mat-menu>
+</div>
+
+@if (drawerAppointmentId(); as id) {
+  <app-appointment-drawer
+    [appointmentId]="id"
+    (changed)="reload()"
+    (closed)="drawerAppointmentId.set(null)"
+  />
+}

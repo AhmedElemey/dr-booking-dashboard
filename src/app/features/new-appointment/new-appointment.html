@@ -1,0 +1,115 @@
+<div class="page narrow">
+  <div class="page-title">
+    <h1>{{ 'newAppointment.title' | translate }}</h1>
+  </div>
+
+  @if (created(); as appointment) {
+    <section class="panel done">
+      <mat-icon class="ok">check_circle</mat-icon>
+      <h2>{{ 'newAppointment.doneTitle' | translate }}</h2>
+      <p>
+        {{ appointment.patient.fullName }} ·
+        <span class="ltr-text">{{ appointment.patient.phone }}</span>
+      </p>
+      <p class="when">
+        {{ clinicTime.dateLong(appointment.startsAt, appointment.timezone) }}
+        <span class="ltr-text">{{
+          clinicTime.time(appointment.startsAt, appointment.timezone)
+        }}</span>
+        · {{ appointment.doctor.name }}
+      </p>
+      <div class="row">
+        <button mat-stroked-button type="button" (click)="another()">
+          {{ 'newAppointment.another' | translate }}
+        </button>
+        <a mat-flat-button routerLink="/agenda">{{ 'newAppointment.toAgenda' | translate }}</a>
+      </div>
+    </section>
+  } @else {
+    <form class="panel box" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <h2 class="step"><span>1</span>{{ 'newAppointment.stepDoctor' | translate }}</h2>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'newAppointment.doctor' | translate }}</mat-label>
+          <mat-select formControlName="doctorId" (selectionChange)="chooseDoctor($event.value)">
+            @for (d of doctors(); track d.id) {
+              <mat-option [value]="d.id">{{ doctorName(d) }}</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.doctorId.hasError('required')) {
+            <mat-error>{{ 'validation.required' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'newAppointment.service' | translate }}</mat-label>
+          <mat-select formControlName="serviceId" [disabled]="services().length === 0">
+            <mat-option value="">{{ 'newAppointment.noService' | translate }}</mat-option>
+            @for (s of services(); track s.id) {
+              <mat-option [value]="s.id"
+                >{{ serviceName(s) }} ({{ s.durationMinutes }}
+                {{ 'common.min' | translate }})</mat-option
+              >
+            }
+          </mat-select>
+          <mat-hint>{{ 'newAppointment.serviceHint' | translate }}</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <h2 class="step"><span>2</span>{{ 'newAppointment.stepSlot' | translate }}</h2>
+      @if (!form.controls.doctorId.value) {
+        <p class="muted">{{ 'newAppointment.pickDoctorFirst' | translate }}</p>
+      } @else if (slotsLoaded()) {
+        <app-slot-picker
+          [slots]="openSlots()"
+          [selectedId]="selectedSlot()?.id ?? null"
+          (selected)="selectSlot($event)"
+        />
+        @if (slotMissing()) {
+          <p class="error" role="alert">{{ 'newAppointment.slotRequired' | translate }}</p>
+        }
+      }
+
+      <h2 class="step"><span>3</span>{{ 'newAppointment.stepPatient' | translate }}</h2>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'newAppointment.patientPhone' | translate }}</mat-label>
+          <input
+            matInput
+            type="tel"
+            inputmode="tel"
+            formControlName="patientPhone"
+            class="ltr-input"
+            placeholder="01X XXXX XXXX"
+          />
+          <mat-hint>{{ 'login.phoneHint' | translate }}</mat-hint>
+          @if (form.controls.patientPhone.hasError('required')) {
+            <mat-error>{{ 'validation.required' | translate }}</mat-error>
+          } @else if (form.controls.patientPhone.hasError('egyptPhone')) {
+            <mat-error>{{ 'validation.egyptPhone' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'newAppointment.patientName' | translate }}</mat-label>
+          <input matInput formControlName="patientName" autocomplete="off" />
+          @if (form.controls.patientName.hasError('required')) {
+            <mat-error>{{ 'validation.required' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>{{ 'newAppointment.note' | translate }}</mat-label>
+          <textarea matInput rows="2" formControlName="patientNote"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="row">
+        <button mat-flat-button type="submit" [disabled]="saving()">
+          <mat-icon>event_available</mat-icon>
+          {{ 'newAppointment.submit' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

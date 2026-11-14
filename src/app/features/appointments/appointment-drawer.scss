@@ -1,0 +1,82 @@
+.center {
+  display: grid;
+  place-items: center;
+  padding: 48px;
+}
+
+.head {
+  margin-block-end: 16px;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  margin: 0 0 24px;
+}
+
+dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-start: 12px;
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 18px;
+    inline-size: 18px;
+    block-size: 18px;
+  }
+}
+
+dd {
+  margin: 0;
+  padding-inline-start: 26px;
+}
+
+.time {
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sub {
+  border-block-start: 1px solid var(--mat-sys-outline-variant);
+  padding-block-start: 16px;
+
+  h3 {
+    margin: 0 0 12px;
+    font: var(--mat-sys-title-medium);
+  }
+
+  mat-form-field {
+    inline-size: 100%;
+  }
+}
+
+.row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-block-start: 16px;
+}
+
+.complete {
+  --mat-button-filled-container-color: var(--ml-completed);
+  --mat-button-filled-label-text-color: #fff;
+}
+
+.danger {
+  --mat-button-filled-container-color: #b3261e;
+  --mat-button-filled-label-text-color: #fff;
+}
+
+.danger-outline {
+  --mat-button-outlined-label-text-color: #b3261e;
+  --mat-button-outlined-outline-color: #b3261e;
+}

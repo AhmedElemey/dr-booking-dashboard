@@ -1,0 +1,152 @@
+<app-drawer [heading]="heading()" (closed)="closed.emit()">
+  @if (loading()) {
+    <div class="center"><mat-spinner diameter="36" /></div>
+  } @else if (appointment(); as a) {
+    <div class="head">
+      <app-status-chip [status]="a.status" />
+    </div>
+
+    <dl>
+      <dt><mat-icon>schedule</mat-icon>{{ 'drawer.when' | translate }}</dt>
+      <dd>
+        <div>{{ clinicTime.dateLong(a.startsAt, a.timezone) }}</div>
+        <div class="time ltr-text">{{ clinicTime.range(a.startsAt, a.endsAt, a.timezone) }}</div>
+      </dd>
+
+      <dt><mat-icon>person</mat-icon>{{ 'drawer.patient' | translate }}</dt>
+      <dd>
+        <div>{{ a.patient.fullName || '-' }}</div>
+        <a class="ltr-text" [href]="'tel:' + a.patient.phone">{{ a.patient.phone }}</a>
+      </dd>
+
+      <dt><mat-icon>medical_services</mat-icon>{{ 'drawer.doctor' | translate }}</dt>
+      <dd>{{ a.doctor.name }}</dd>
+
+      <dt><mat-icon>healing</mat-icon>{{ 'drawer.service' | translate }}</dt>
+      <dd>
+        @if (a.service; as s) {
+          {{ s.name }}
+          <span class="muted">({{ s.durationMinutes }} {{ 'common.min' | translate }})</span>
+        } @else {
+          <span class="muted">{{ 'drawer.noService' | translate }}</span>
+        }
+      </dd>
+
+      @if (a.patientNote) {
+        <dt><mat-icon>notes</mat-icon>{{ 'drawer.note' | translate }}</dt>
+        <dd>{{ a.patientNote }}</dd>
+      }
+
+      @if (a.status === 'Cancelled') {
+        <dt><mat-icon>cancel</mat-icon>{{ 'drawer.cancelledBy' | translate }}</dt>
+        <dd>
+          {{ 'drawer.by.' + (a.cancelledBy ?? 'Clinic') | translate }}
+          @if (a.cancelReason) {
+            <div class="muted">{{ a.cancelReason }}</div>
+          }
+        </dd>
+      }
+    </dl>
+
+    @switch (mode()) {
+      @case ('cancel') {
+        <section class="sub" aria-live="polite">
+          <h3>{{ 'drawer.cancelTitle' | translate }}</h3>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'drawer.reason' | translate }}</mat-label>
+            <textarea matInput rows="3" maxlength="500" [(ngModel)]="cancelReason"></textarea>
+          </mat-form-field>
+          <div class="row">
+            <button mat-button type="button" (click)="back()" [disabled]="busy()">
+              {{ 'common.back' | translate }}
+            </button>
+            <button
+              mat-flat-button
+              type="button"
+              class="danger"
+              (click)="submitCancel()"
+              [disabled]="busy()"
+            >
+              {{ 'drawer.confirmCancel' | translate }}
+            </button>
+          </div>
+        </section>
+      }
+      @case ('reschedule') {
+        <section class="sub" aria-live="polite">
+          <h3>{{ 'drawer.rescheduleTitle' | translate }}</h3>
+          <app-slot-picker
+            [slots]="openSlots()"
+            [selectedId]="targetSlot()?.id ?? null"
+            (selected)="targetSlot.set($event)"
+          />
+          <div class="row">
+            <button mat-button type="button" (click)="back()" [disabled]="busy()">
+              {{ 'common.back' | translate }}
+            </button>
+            <button
+              mat-flat-button
+              type="button"
+              (click)="submitReschedule()"
+              [disabled]="busy() || !targetSlot()"
+            >
+              {{ 'drawer.confirmReschedule' | translate }}
+            </button>
+          </div>
+        </section>
+      }
+      @default {
+        @if (actions(); as actions) {
+          @if (hasAnyAction()) {
+            <div class="actions">
+              @if (actions.complete) {
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="complete"
+                  [disabled]="busy()"
+                  (click)="confirmAndRun('complete', 'drawer.complete', 'drawer.completeConfirm')"
+                >
+                  <mat-icon>check_circle</mat-icon>{{ 'drawer.complete' | translate }}
+                </button>
+              }
+              @if (actions.noShow) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="confirmAndRun('noShow', 'drawer.noShow', 'drawer.noShowConfirm')"
+                >
+                  <mat-icon>person_off</mat-icon>{{ 'drawer.noShow' | translate }}
+                </button>
+              }
+              @if (actions.reschedule) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="startReschedule()"
+                >
+                  <mat-icon>event_repeat</mat-icon>{{ 'drawer.reschedule' | translate }}
+                </button>
+              }
+              @if (actions.cancel) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="danger-outline"
+                  [disabled]="busy()"
+                  (click)="startCancel()"
+                >
+                  <mat-icon>event_busy</mat-icon>{{ 'drawer.cancel' | translate }}
+                </button>
+              }
+            </div>
+          } @else {
+            <p class="muted">{{ 'drawer.final' | translate }}</p>
+          }
+        }
+      }
+    }
+  }
+</app-drawer>

@@ -1,0 +1,165 @@
+<div class="page">
+  <div class="page-title">
+    <h1>{{ title() }}</h1>
+    <a mat-button [routerLink]="['/slots']" [queryParams]="{ doctorId: id() }">
+      <mat-icon>event_available</mat-icon>{{ 'nav.slots' | translate }}
+    </a>
+  </div>
+
+  <mat-tab-group animationDuration="0ms" mat-stretch-tabs="false">
+    <mat-tab [label]="'doctors.tabProfile' | translate">
+      <form class="panel box" [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <div class="photo-row">
+          <div class="avatar" aria-hidden="true">
+            @if (doctor()?.photoUrl; as url) {
+              <img [src]="url" alt="" />
+            } @else {
+              <mat-icon>person</mat-icon>
+            }
+          </div>
+          <div>
+            <input
+              #file
+              type="file"
+              hidden
+              accept="image/jpeg,image/png,image/webp"
+              (change)="onPhotoSelected($event)"
+            />
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="uploading()"
+              (click)="file.click()"
+            >
+              <mat-icon>upload</mat-icon>{{ 'doctors.uploadPhoto' | translate }}
+            </button>
+            <p class="muted hint">{{ 'doctors.photoHint' | translate }}</p>
+          </div>
+          <span class="grow"></span>
+          <mat-slide-toggle formControlName="isPublished">
+            {{ 'doctors.publish' | translate }}
+          </mat-slide-toggle>
+        </div>
+
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'doctors.nameAr' | translate }}</mat-label>
+            <input matInput formControlName="nameAr" dir="rtl" />
+            @if (form.controls.nameAr.hasError('required')) {
+              <mat-error>{{ 'validation.required' | translate }}</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'doctors.nameEn' | translate }}</mat-label>
+            <input matInput formControlName="nameEn" dir="ltr" />
+            @if (form.controls.nameEn.hasError('required')) {
+              <mat-error>{{ 'validation.required' | translate }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'doctors.specialty' | translate }}</mat-label>
+            <mat-select formControlName="specialtyId">
+              @for (s of specialties(); track s.id) {
+                <mat-option [value]="s.id">{{ specialtyName(s) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="pair">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'doctors.experience' | translate }}</mat-label>
+              <input matInput type="number" formControlName="yearsExperience" min="0" max="70" />
+              <span matTextSuffix>{{ 'doctors.years' | translate }}</span>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'doctors.fee' | translate }}</mat-label>
+              <input matInput type="number" formControlName="consultationFeeEgp" min="0" />
+              <span matTextSuffix>{{ 'common.egp' | translate }}</span>
+              <mat-hint>{{ 'doctors.feeHint' | translate }}</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'doctors.bioAr' | translate }}</mat-label>
+            <textarea matInput rows="4" formControlName="bioAr" dir="rtl"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'doctors.bioEn' | translate }}</mat-label>
+            <textarea matInput rows="4" formControlName="bioEn" dir="ltr"></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="row">
+          <button mat-flat-button type="submit" [disabled]="saving()">
+            {{ 'common.save' | translate }}
+          </button>
+        </div>
+      </form>
+    </mat-tab>
+
+    <mat-tab [label]="'doctors.tabServices' | translate">
+      <section class="panel box">
+        <div class="row between">
+          <p class="muted">{{ 'services.intro' | translate }}</p>
+          <button mat-flat-button type="button" (click)="openService()">
+            <mat-icon>add</mat-icon>{{ 'services.add' | translate }}
+          </button>
+        </div>
+
+        @if (services().length === 0) {
+          <p class="muted empty">{{ 'services.empty' | translate }}</p>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">{{ 'services.name' | translate }}</th>
+                <th scope="col">{{ 'services.duration' | translate }}</th>
+                <th scope="col">{{ 'services.price' | translate }}</th>
+                <th scope="col">{{ 'agenda.status' | translate }}</th>
+                <th scope="col">
+                  <span class="sr-only">{{ 'common.actions' | translate }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of services(); track s.id) {
+                <tr [class.inactive]="!s.isActive">
+                  <td>{{ serviceName(s) }}</td>
+                  <td>{{ s.durationMinutes }} {{ 'common.min' | translate }}</td>
+                  <td>
+                    {{
+                      (s.priceEgp ?? null) !== null
+                        ? s.priceEgp + ' ' + ('common.egp' | translate)
+                        : '-'
+                    }}
+                  </td>
+                  <td>{{ (s.isActive ? 'services.active' : 'services.inactive') | translate }}</td>
+                  <td class="end">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      [attr.aria-label]="'common.edit' | translate"
+                      (click)="openService(s)"
+                    >
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    @if (s.isActive) {
+                      <button
+                        mat-icon-button
+                        type="button"
+                        [attr.aria-label]="'services.delete' | translate"
+                        (click)="deactivate(s)"
+                      >
+                        <mat-icon>delete_outline</mat-icon>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+    </mat-tab>
+  </mat-tab-group>
+</div>

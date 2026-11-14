@@ -1,0 +1,158 @@
+<div class="page">
+  <div class="page-title">
+    <h1>{{ 'agenda.title' | translate }}</h1>
+    <a mat-flat-button routerLink="/appointments/new">
+      <mat-icon>add</mat-icon>{{ 'nav.newAppointment' | translate }}
+    </a>
+  </div>
+
+  <div class="nav-row">
+    <div class="nav-buttons">
+      <button
+        mat-icon-button
+        type="button"
+        [attr.aria-label]="'agenda.previous' | translate"
+        (click)="shift(-1)"
+      >
+        <mat-icon class="mirror">chevron_left</mat-icon>
+      </button>
+      <button mat-stroked-button type="button" [disabled]="isToday()" (click)="today()">
+        {{ 'agenda.today' | translate }}
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        [attr.aria-label]="'agenda.next' | translate"
+        (click)="shift(1)"
+      >
+        <mat-icon class="mirror">chevron_right</mat-icon>
+      </button>
+    </div>
+    <h2 class="range">{{ rangeLabel() }}</h2>
+    <button
+      mat-icon-button
+      type="button"
+      [attr.aria-label]="'agenda.pickDate' | translate"
+      (click)="datePicker.showPicker()"
+    >
+      <mat-icon>edit_calendar</mat-icon>
+    </button>
+    <input
+      #datePicker
+      type="date"
+      class="date-input"
+      tabindex="-1"
+      aria-hidden="true"
+      [ngModel]="anchor()"
+      (ngModelChange)="setAnchor($event)"
+    />
+    <span class="spacer"></span>
+    <mat-button-toggle-group
+      [value]="view()"
+      (change)="view.set($event.value)"
+      [attr.aria-label]="'agenda.view' | translate"
+    >
+      <mat-button-toggle value="day">{{ 'agenda.day' | translate }}</mat-button-toggle>
+      <mat-button-toggle value="week">{{ 'agenda.week' | translate }}</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <div class="filters">
+    @if (doctors().length > 1) {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'agenda.doctor' | translate }}</mat-label>
+        <mat-select [value]="doctorId()" (selectionChange)="doctorId.set($event.value)">
+          <mat-option value="">{{ 'common.all' | translate }}</mat-option>
+          @for (d of doctors(); track d.id) {
+            <mat-option [value]="d.id">{{ doctorName(d) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>{{ 'agenda.status' | translate }}</mat-label>
+      <mat-select [value]="status()" (selectionChange)="status.set($event.value)">
+        <mat-option value="">{{ 'common.all' | translate }}</mat-option>
+        @for (s of statuses; track s) {
+          <mat-option [value]="s">{{ 'status.' + s | translate }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <button
+      mat-icon-button
+      type="button"
+      [attr.aria-label]="'agenda.refresh' | translate"
+      (click)="refresh()"
+    >
+      <mat-icon>refresh</mat-icon>
+    </button>
+    <span class="spacer"></span>
+    <div class="counts">
+      @for (s of statuses; track s) {
+        <span class="count"
+          ><app-status-chip [status]="s" /> <strong>{{ counts()[s] }}</strong></span
+        >
+      }
+    </div>
+  </div>
+
+  <section class="panel">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    @for (group of groups(); track group.key) {
+      @if (view() === 'week') {
+        <h3 class="day-head">{{ clinicTime.keyLabel(group.key, 'cccc, d LLLL') }}</h3>
+      }
+      @if (group.items.length === 0) {
+        <p class="empty muted">
+          <mat-icon>event_available</mat-icon>
+          {{ 'agenda.empty' | translate }}
+        </p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'agenda.col.time' | translate }}</th>
+              <th scope="col">{{ 'agenda.col.patient' | translate }}</th>
+              <th scope="col">{{ 'agenda.col.phone' | translate }}</th>
+              <th scope="col">{{ 'agenda.col.doctor' | translate }}</th>
+              <th scope="col">{{ 'agenda.col.service' | translate }}</th>
+              <th scope="col">{{ 'agenda.col.status' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of group.items; track a.id) {
+              <tr [class.selected]="a.id === selectedId()" (click)="selectedId.set(a.id)">
+                <td class="time">
+                  <button
+                    type="button"
+                    class="row-link ltr-text"
+                    (click)="selectedId.set(a.id); $event.stopPropagation()"
+                  >
+                    {{ clinicTime.time(a.startsAt, a.timezone) }}
+                  </button>
+                </td>
+                <td>{{ a.patient.fullName || '-' }}</td>
+                <td>
+                  <span class="ltr-text">{{ a.patient.phone }}</span>
+                </td>
+                <td>{{ a.doctor.name }}</td>
+                <td>{{ a.service?.name || '-' }}</td>
+                <td><app-status-chip [status]="a.status" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    }
+  </section>
+</div>
+
+@if (selectedId(); as id) {
+  <app-appointment-drawer
+    [appointmentId]="id"
+    (changed)="refresh()"
+    (closed)="selectedId.set(null)"
+  />
+}

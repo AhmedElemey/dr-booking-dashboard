@@ -17,6 +17,7 @@ import {
   Slot,
 } from '../api/models';
 import { API_ROOT } from '../config/api-url';
+import { BRAND } from '../config/brand';
 import { dateRange, dayOfWeekNumber, localToUtcIso, minutesOfDay } from '../time/clinic-time';
 import { CLINIC_ID, MOCK_TZ, MockAppointment, MockState, createMockState } from './mock-data';
 
@@ -64,7 +65,7 @@ export class MockBackend {
       return {
         id: 'u-admin',
         phone: ADMIN_PHONE,
-        fullName: 'Moonlight Admin',
+        fullName: `${BRAND.name.en} Admin`,
         role: 'PlatformAdmin',
         preferredLanguage: 'ar',
       };
@@ -509,6 +510,29 @@ export class MockBackend {
       },
     ],
 
+    // runtime config (public)
+    [
+      'GET',
+      /^\/features$/,
+      () => ({
+        features: { ...BRAND.features },
+        source: 'defaults',
+        updatedAt: new Date().toISOString(),
+      }),
+    ],
+    [
+      'GET',
+      /^\/branding$/,
+      () => ({
+        slug: BRAND.slug,
+        name: BRAND.name,
+        tagline: BRAND.tagline,
+        colors: BRAND.colors,
+        supportPhone: BRAND.supportPhone,
+        logoUrl: BRAND.logo,
+      }),
+    ],
+
     // clinic
     ['GET', /^\/dashboard\/clinic$/, () => this.state.clinics.find((c) => c.id === CLINIC_ID)],
     [
@@ -633,7 +657,11 @@ export class MockBackend {
     const url = new URL(req.url, 'http://mock.local');
     const path = url.pathname.replace(/^\/api\/v1/, '');
     const isPublic =
-      path.startsWith('/auth/otp') || path === '/auth/refresh' || path === '/specialties';
+      path.startsWith('/auth/otp') ||
+      path === '/auth/refresh' ||
+      path === '/specialties' ||
+      path === '/features' ||
+      path === '/branding';
 
     const auth = req.headers.get('Authorization');
     const role = (/^Bearer mock-access-(staff|doctor|admin)$/.exec(auth ?? '')?.[1] ??

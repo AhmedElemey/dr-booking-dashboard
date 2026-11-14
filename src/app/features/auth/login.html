@@ -3,8 +3,8 @@
 
   <main class="card">
     <div class="brand">
-      <mat-icon class="logo" aria-hidden="true">nights_stay</mat-icon>
-      <h1>{{ 'app.name' | translate }}</h1>
+      <img class="logo" [src]="brand.logo" alt="" />
+      <h1>{{ brand.name() }}</h1>
       <p class="muted">{{ 'login.subtitle' | translate }}</p>
     </div>
 

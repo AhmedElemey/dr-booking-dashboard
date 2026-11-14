@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "clinic.config.schema.json",
+  "title": "Clinic configuration",
+  "description": "A clinic's identity and default feature switches. Shared by every Moonlight repo.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["slug", "name", "tagline", "colors", "logo", "features"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "maxLength": 40 },
+    "name": { "$ref": "#/$defs/localized" },
+    "tagline": { "$ref": "#/$defs/localized" },
+    "colors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "accent"],
+      "properties": {
+        "primary": { "$ref": "#/$defs/hexColor" },
+        "accent": { "$ref": "#/$defs/hexColor" }
+      }
+    },
+    "logo": { "type": "string", "minLength": 1, "pattern": "\\.svg$" },
+    "supportPhone": { "type": "string", "pattern": "^\\+?[0-9 ()-]{6,20}$" },
+    "website": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "domain": { "type": "string" } }
+    },
+    "mobile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "androidApplicationId": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+        },
+        "iosBundleId": { "type": "string", "pattern": "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$" }
+      }
+    },
+    "console": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "url": { "type": "string" }, "clinicId": { "type": "string" } }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mobileApp",
+        "website",
+        "guestBrowsing",
+        "patientSelfService",
+        "pushReminders",
+        "smsNotifications",
+        "englishLanguage",
+        "multiBranch"
+      ],
+      "properties": {
+        "mobileApp": { "type": "boolean" },
+        "website": { "type": "boolean" },
+        "guestBrowsing": { "type": "boolean" },
+        "patientSelfService": { "type": "boolean" },
+        "pushReminders": { "type": "boolean" },
+        "smsNotifications": { "type": "boolean" },
+        "englishLanguage": { "type": "boolean" },
+        "multiBranch": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "localized": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ar", "en"],
+      "properties": {
+        "ar": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "en": { "type": "string", "minLength": 1, "maxLength": 80 }
+      }
+    },
+    "hexColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
+  }
+}

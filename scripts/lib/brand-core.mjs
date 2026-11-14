@@ -1,0 +1,188 @@
+// Pure helpers behind `scripts/brand.mjs`: validation and code generation. No file access here,
+// so the same functions are unit-tested (src/app/core/config/brand.spec.ts) and used by the CLI.
+
+// ---- JSON Schema (the subset clinic.config.schema.json uses) ----
+
+function typeOf(value) {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  return typeof value;
+}
+
+function resolveRef(root, ref) {
+  return ref
+    .replace(/^#\//, '')
+    .split('/')
+    .reduce((node, key) => node?.[key], root);
+}
+
+/** Returns a list of human readable errors (empty when the value is valid). */
+export function validate(schema, value, root = schema, path = '$') {
+  if (schema.$ref) return validate(resolveRef(root, schema.$ref), value, root, path);
+  const errors = [];
+  if (schema.type && typeOf(value) !== schema.type) {
+    return [`${path}: expected ${schema.type}, got ${typeOf(value)}`];
+  }
+  if (schema.enum && !schema.enum.includes(value))
+    errors.push(`${path}: not one of the allowed values`);
+  if (typeof value === 'string') {
+    if (schema.minLength !== undefined && value.length < schema.minLength)
+      errors.push(`${path}: shorter than ${schema.minLength} characters`);
+    if (schema.maxLength !== undefined && value.length > schema.maxLength)
+      errors.push(`${path}: longer than ${schema.maxLength} characters`);
+    if (schema.pattern && !new RegExp(schema.pattern).test(value))
+      errors.push(`${path}: does not match ${schema.pattern}`);
+  }
+  if (typeOf(value) === 'object') {
+    for (const key of schema.required ?? []) {
+      if (!(key in value)) errors.push(`${path}: missing required property "${key}"`);
+    }
+    const props = schema.properties ?? {};
+    for (const [key, child] of Object.entries(value)) {
+      if (props[key]) errors.push(...validate(props[key], child, root, `${path}.${key}`));
+      else if (schema.additionalProperties === false)
+        errors.push(`${path}: unexpected property "${key}"`);
+    }
+  }
+  return errors;
+}
+
+// ---- Colour maths: Material-style tonal palettes (tone = CIE L*) ----
+
+const hexToRgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+const toLinear = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const fromLinear = (c) => (c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055);
+const WHITE = [0.95047, 1, 1.08883];
+
+function labOf(hex) {
+  const [r, g, b] = hexToRgb(hex).map(toLinear);
+  const xyz = [
+    0.4124564 * r + 0.3575761 * g + 0.1804375 * b,
+    0.2126729 * r + 0.7151522 * g + 0.072175 * b,
+    0.0193339 * r + 0.119192 * g + 0.9503041 * b,
+  ];
+  const f = (t) => (t > 216 / 24389 ? Math.cbrt(t) : ((24389 / 27) * t + 16) / 116);
+  const [fx, fy, fz] = xyz.map((v, i) => f(v / WHITE[i]));
+  return { L: 116 * fy - 16, a: 500 * (fx - fy), b: 200 * (fy - fz) };
+}
+
+/** sRGB (0..1 per channel) for a Lab colour, or null when outside the sRGB gamut. */
+function rgbOfLab(L, a, b) {
+  const fy = (L + 16) / 116;
+  const finv = (t) => (t ** 3 > 216 / 24389 ? t ** 3 : (116 * t - 16) / (24389 / 27));
+  const xyz = [finv(fy + a / 500) * WHITE[0], finv(fy) * WHITE[1], finv(fy - b / 200) * WHITE[2]];
+  const lin = [
+    3.2404542 * xyz[0] - 1.5371385 * xyz[1] - 0.4985314 * xyz[2],
+    -0.969266 * xyz[0] + 1.8760108 * xyz[1] + 0.041556 * xyz[2],
+    0.0556434 * xyz[0] - 0.2040259 * xyz[1] + 1.0572252 * xyz[2],
+  ];
+  if (lin.some((c) => c < -0.0005 || c > 1.0005)) return null;
+  return lin.map((c) => fromLinear(Math.min(1, Math.max(0, c))));
+}
+
+const toHex = (rgb) =>
+  '#' +
+  rgb
+    .map((c) =>
+      Math.round(c * 255)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')
+    .toUpperCase();
+
+export function hueChroma(hex) {
+  const { a, b } = labOf(hex);
+  return { hue: Math.atan2(b, a), chroma: Math.hypot(a, b) };
+}
+
+/** The colour of the given hue (radians) at tone `tone`, with at most `chroma` (clipped to sRGB). */
+export function toneColor(hue, chroma, tone) {
+  if (tone <= 0) return '#000000';
+  if (tone >= 100) return '#FFFFFF';
+  let c = chroma;
+  for (let i = 0; i < 80; i++, c -= chroma / 80) {
+    const rgb = rgbOfLab(tone, Math.max(c, 0) * Math.cos(hue), Math.max(c, 0) * Math.sin(hue));
+    if (rgb) return toHex(rgb);
+  }
+  return toHex(rgbOfLab(tone, 0, 0));
+}
+
+export const TONES = [0, 10, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100];
+
+export function tonalPalette(hue, chroma) {
+  return Object.fromEntries(TONES.map((t) => [t, toneColor(hue, chroma, t)]));
+}
+
+/** Primary/tertiary palettes (as Material expects them) for a seed colour. */
+export function paletteFor(seedHex) {
+  const { hue, chroma } = hueChroma(seedHex);
+  return {
+    ...tonalPalette(hue, Math.max(chroma, 36)),
+    secondary: tonalPalette(hue, 16),
+    neutral: tonalPalette(hue, 4),
+    'neutral-variant': tonalPalette(hue, 8),
+  };
+}
+
+// ---- Generators ----
+
+const BANNER =
+  'Generated by scripts/brand.mjs from clinic.config.json. Do not edit; run `npm run brand`.';
+
+function scssMap(palette) {
+  const tones = TONES.map((t) => `  ${t}: ${palette[t]},`).join('\n');
+  const sub = (name) =>
+    `  ${name}: (\n${TONES.map((t) => `    ${t}: ${palette[name][t]},`).join('\n')}\n  ),`;
+  return `(\n${tones}\n${sub('secondary')}\n${sub('neutral')}\n${sub('neutral-variant')}\n  error: map.get(mat.$azure-palette, error),\n)`;
+}
+
+export function renderScss(config) {
+  return `// ${BANNER}
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+$primary-palette: ${scssMap(paletteFor(config.colors.primary))};
+
+$accent-palette: ${scssMap(paletteFor(config.colors.accent))};
+
+:root {
+  --ml-brand-primary: ${config.colors.primary};
+  --ml-brand-accent: ${config.colors.accent};
+}
+`;
+}
+
+export function renderTs(config) {
+  const brand = {
+    slug: config.slug,
+    name: config.name,
+    tagline: config.tagline,
+    colors: config.colors,
+    logo: `/${config.logo}`,
+    supportPhone: config.supportPhone ?? '',
+    features: config.features,
+  };
+  return `// ${BANNER}
+export const BRAND = ${JSON.stringify(brand, null, 2)} as const;
+`;
+}
+
+export const HTML_START = '<!-- brand:start -->';
+export const HTML_END = '<!-- brand:end -->';
+
+const escapeHtml = (s) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/** Replaces the branded block of index.html (title and theme colour). */
+export function renderIndexHtml(html, config) {
+  const start = html.indexOf(HTML_START);
+  const end = html.indexOf(HTML_END);
+  if (start < 0 || end < start) throw new Error(`index.html is missing the ${HTML_START} markers`);
+  const block =
+    `${HTML_START}\n` +
+    `    <title>${escapeHtml(config.name.en)} Dashboard</title>\n` +
+    `    <meta name="theme-color" content="${config.colors.primary}" />\n` +
+    `    ${HTML_END}`;
+  return html.slice(0, start) + block + html.slice(end + HTML_END.length);
+}

@@ -7,8 +7,8 @@
     [attr.aria-label]="'nav.label' | translate"
   >
     <div class="brand">
-      <mat-icon aria-hidden="true">nights_stay</mat-icon>
-      <span>{{ 'app.name' | translate }}</span>
+      <img class="logo" [src]="brand.logo" alt="" />
+      <span>{{ brand.name() }}</span>
     </div>
     <mat-nav-list>
       @for (item of nav(); track item.link) {
@@ -38,6 +38,9 @@
           <mat-icon>menu</mat-icon>
         </button>
       }
+      @if (narrow()) {
+        <span class="toolbar-title">{{ brand.name() }}</span>
+      }
       <span class="spacer"></span>
       <app-language-toggle />
       <button mat-button type="button" class="user-button" [matMenuTriggerFor]="userMenu">
@@ -60,6 +63,18 @@
         </button>
       </mat-menu>
     </mat-toolbar>
+    @if (features.disabledNotice(); as feature) {
+      <div class="feature-banner" role="status">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        <span class="text">{{
+          'features.disabledBanner'
+            | translate: { feature: 'features.names.' + feature | translate }
+        }}</span>
+        <button mat-button type="button" (click)="features.dismissNotice()">
+          {{ 'features.dismiss' | translate }}
+        </button>
+      </div>
+    }
     <router-outlet />
   </mat-sidenav-content>
 </mat-sidenav-container>

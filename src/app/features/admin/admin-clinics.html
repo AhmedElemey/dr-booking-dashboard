@@ -1,9 +1,11 @@
 <div class="page">
   <div class="page-title">
     <h1>{{ 'admin.clinics' | translate }}</h1>
-    <button mat-flat-button type="button" (click)="addClinic()">
-      <mat-icon>add</mat-icon>{{ 'admin.addClinic' | translate }}
-    </button>
+    @if (features.multiBranch()) {
+      <button mat-flat-button type="button" (click)="addClinic()">
+        <mat-icon>add</mat-icon>{{ 'admin.addClinic' | translate }}
+      </button>
+    }
   </div>
 
   <section class="panel">

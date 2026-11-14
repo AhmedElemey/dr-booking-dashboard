@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
+import { applyBrand } from '../../core/config/brand';
 import en from '../../../../public/i18n/en.json';
 import { provideTestTranslations } from '../../../testing/test-providers';
 import { API_ROOT } from '../../core/config/api-url';
@@ -106,7 +107,9 @@ describe('Login', () => {
     });
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(el.querySelector('[role=alert]')?.textContent).toContain(en.errors.ROLE_NOT_ALLOWED);
+    expect(el.querySelector('[role=alert]')?.textContent).toContain(
+      applyBrand(en, 'en').errors.ROLE_NOT_ALLOWED,
+    );
     expect(localStorage.getItem('moonlight.refreshToken')).toBeNull();
   });
 });

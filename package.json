@@ -3,6 +3,13 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "brand": "node scripts/brand.mjs",
+    "brand:check": "node scripts/brand.mjs --check",
+    "prestart": "npm run brand --silent",
+    "prebuild": "npm run brand --silent",
+    "pretest": "npm run brand --silent",
+    "prelint": "npm run brand --silent",
+    "prewatch": "npm run brand --silent",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",

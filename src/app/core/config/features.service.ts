@@ -1,7 +1,8 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { DestroyRef, Injectable, Injector, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { EMPTY, catchError, switchMap, timer } from 'rxjs';
+import { EMPTY, Observable, catchError, map, of, switchMap, take, timer } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 import { SKIP_ERROR_TOAST } from '../http/http-context';
 import { BRAND, FEATURE_KEYS, FeatureFlags, FeatureKey } from './brand';
@@ -48,7 +49,29 @@ export class FeaturesService {
   /** Exposed for completeness: staff can always cancel, whatever patients may do. */
   readonly patientSelfService = computed(() => this.features().patientSelfService);
 
+  /** True once the backend has answered (or failed to) at least once since startup. */
+  readonly settled = signal(false);
+
+  /** Reads one switch; reactive when called from a template, computed or effect. */
+  isOn(key: FeatureKey): boolean {
+    return this.features()[key];
+  }
+
   private started = false;
+
+  /**
+   * Emits once the first `GET /features` has settled, so a deep link to a page of a switched-on
+   * feature is not bounced because the cached default was still "off". Immediate when the
+   * service was never started (tests) or already settled.
+   */
+  whenSettled(): Observable<boolean> {
+    if (!this.started || this.settled()) return of(true);
+    return toObservable(this.settled, { injector: this.injector }).pipe(
+      switchMap((done) => (done ? of(true) : EMPTY)),
+      take(1),
+      map(() => true),
+    );
+  }
 
   /** Fetches now and every five minutes. Safe to call more than once. */
   start(): void {
@@ -72,9 +95,13 @@ export class FeaturesService {
       .pipe(
         switchMap((response) => {
           this.apply(response?.features);
+          this.settled.set(true);
           return EMPTY;
         }),
-        catchError(() => EMPTY),
+        catchError(() => {
+          this.settled.set(true);
+          return EMPTY;
+        }),
       );
   }
 

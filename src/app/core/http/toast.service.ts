@@ -3,7 +3,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateService } from '@ngx-translate/core';
 
 import { FeaturesService } from '../config/features.service';
-import { errorCode, errorMessageKey, problemOf } from './error-codes';
+import { couponReasonKey, errorCode, errorMessageKey, problemOf } from './error-codes';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
@@ -35,7 +35,8 @@ export class ToastService {
       );
       return;
     }
-    this.open(this.translate.instant(errorMessageKey(code)), 'toast-error');
+    const key = (code === 'COUPON_INVALID' && couponReasonKey(error)) || errorMessageKey(code);
+    this.open(this.translate.instant(key), 'toast-error');
   }
 
   private open(message: string, panelClass: string): void {

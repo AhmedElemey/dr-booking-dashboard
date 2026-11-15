@@ -16,9 +16,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
-import { filter, switchMap } from 'rxjs';
+import { filter, forkJoin, switchMap } from 'rxjs';
 
 import { DoctorsApi } from '../../core/api/doctors.api';
+import { HolidaysApi } from '../../core/api/holidays.api';
+import { Holiday } from '../../core/api/phase2.models';
+import { AuthService } from '../../core/auth/auth.service';
+import { FeaturesService } from '../../core/config/features.service';
 import { Doctor, Service, Slot, SlotStatus } from '../../core/api/models';
 import { ToastService } from '../../core/http/toast.service';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -29,11 +33,14 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { AppointmentDrawer } from '../appointments/appointment-drawer';
 import { AddSlotDialog } from './add-slot-dialog';
+import { ApplyTemplateDialog } from './apply-template-dialog';
 import { BulkDialog } from './bulk-dialog';
 
 interface Column {
   key: string;
   slots: Slot[];
+  /** Name of the clinic holiday on this day (holidayCalendar), if any. */
+  holiday?: string;
 }
 
 const STATUSES: SlotStatus[] = ['Open', 'Reserved', 'Blocked'];
@@ -66,6 +73,9 @@ export class SlotCalendar {
   private readonly toast = inject(ToastService);
   private readonly clock = inject(Clock);
   private readonly languages = inject(LanguageService);
+  private readonly holidaysApi = inject(HolidaysApi);
+  private readonly auth = inject(AuthService);
+  protected readonly features = inject(FeaturesService);
   protected readonly clinicTime = inject(ClinicTime);
 
   /** Optional `?doctorId=` query parameter. */
@@ -79,6 +89,7 @@ export class SlotCalendar {
   protected readonly anchor = signal(this.clinicTime.today());
   protected readonly slots = signal<Slot[]>([]);
   protected readonly loading = signal(false);
+  private readonly holidays = signal<Holiday[]>([]);
   protected readonly drawerAppointmentId = signal<string | null>(null);
 
   protected readonly range = computed(() => {
@@ -102,7 +113,17 @@ export class SlotCalendar {
       const key = this.clinicTime.dateKey(slot.startsAt);
       byDay.set(key, [...(byDay.get(key) ?? []), slot]);
     }
-    return dateRange(from, to).map((key) => ({ key, slots: byDay.get(key) ?? [] }));
+    const holidayByDay = new Map(
+      this.holidays().map((h) => [
+        h.date,
+        localized(this.languages.language(), h.nameAr, h.nameEn),
+      ]),
+    );
+    return dateRange(from, to).map((key) => ({
+      key,
+      slots: byDay.get(key) ?? [],
+      holiday: holidayByDay.get(key),
+    }));
   });
 
   constructor() {
@@ -118,6 +139,20 @@ export class SlotCalendar {
       const doctorId = this.selectedDoctorId();
       const { from, to } = this.range();
       if (doctorId) this.load(doctorId, from, to);
+    });
+    // Clinic holidays (holidayCalendar) are labelled on their day.
+    effect(() => {
+      const clinicId = this.auth.user()?.clinicId;
+      const { from, to } = this.range();
+      if (!clinicId || !this.features.isOn('holidayCalendar')) {
+        this.holidays.set([]);
+        return;
+      }
+      const years = [...new Set([from.slice(0, 4), to.slice(0, 4)])].map(Number);
+      forkJoin(years.map((y) => this.holidaysApi.list(clinicId, y))).subscribe({
+        next: (lists) => this.holidays.set(lists.flat()),
+        error: () => this.holidays.set([]),
+      });
     });
     effect(() => {
       const doctorId = this.selectedDoctorId();
@@ -245,6 +280,20 @@ export class SlotCalendar {
     this.dialog
       .open(BulkDialog, {
         data: { doctorId, startDate: this.anchor(), services: this.services() },
+        maxWidth: '96vw',
+      })
+      .afterClosed()
+      .subscribe((changed) => {
+        if (changed === true) this.reload();
+      });
+  }
+
+  protected openApplyTemplate(): void {
+    const doctorId = this.selectedDoctorId();
+    if (!doctorId) return;
+    this.dialog
+      .open(ApplyTemplateDialog, {
+        data: { doctorId, startDate: this.anchor() },
         maxWidth: '96vw',
       })
       .afterClosed()

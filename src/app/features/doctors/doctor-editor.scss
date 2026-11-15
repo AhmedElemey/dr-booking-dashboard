@@ -99,3 +99,11 @@ td {
   overflow: hidden;
   clip-path: inset(50%);
 }
+
+.feature-row {
+  margin-block: 4px 12px;
+
+  .wide {
+    inline-size: 100%;
+  }
+}

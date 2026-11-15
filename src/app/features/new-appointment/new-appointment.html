@@ -17,6 +17,9 @@
           clinicTime.time(appointment.startsAt, appointment.timezone)
         }}</span>
         · {{ appointment.doctor.name }}
+        @if (features.isOn('videoConsultation') && appointment.mode === 'Video') {
+          · {{ 'drawer.video' | translate }}
+        }
       </p>
       <div class="row">
         <button mat-stroked-button type="button" (click)="another()">
@@ -54,6 +57,24 @@
           </mat-select>
           <mat-hint>{{ 'newAppointment.serviceHint' | translate }}</mat-hint>
         </mat-form-field>
+
+        @if (offersVideo()) {
+          <div class="mode full">
+            <span id="mode-label" class="mode-label">{{ 'newAppointment.mode' | translate }}</span>
+            <mat-button-toggle-group
+              formControlName="mode"
+              aria-labelledby="mode-label"
+              [hideSingleSelectionIndicator]="false"
+            >
+              <mat-button-toggle value="InPerson">
+                <mat-icon>meeting_room</mat-icon> {{ 'drawer.modes.InPerson' | translate }}
+              </mat-button-toggle>
+              <mat-button-toggle value="Video">
+                <mat-icon>videocam</mat-icon> {{ 'drawer.modes.Video' | translate }}
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+        }
       </div>
 
       <h2 class="step"><span>2</span>{{ 'newAppointment.stepSlot' | translate }}</h2>

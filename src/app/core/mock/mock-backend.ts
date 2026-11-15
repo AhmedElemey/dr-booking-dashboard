@@ -18,43 +18,28 @@ import {
 } from '../api/models';
 import { API_ROOT } from '../config/api-url';
 import { BRAND } from '../config/brand';
+import { PHASE2_FEATURE_KEYS } from '../config/brand';
 import { dateRange, dayOfWeekNumber, localToUtcIso, minutesOfDay } from '../time/clinic-time';
+import { ApiError, Ctx, DOCTOR_ID, Handler } from './mock-core';
 import { CLINIC_ID, MOCK_TZ, MockAppointment, MockState, createMockState } from './mock-data';
+import { phase2Routes } from './mock-phase2';
 
 /**
  * Fake API for the demo build. It follows the spec's contract closely enough for the dashboard
  * to be used end to end (booking, transitions, slot edits, admin) without a backend.
  */
 
-type Handler = (ctx: Ctx) => unknown;
-
-interface Ctx {
-  req: HttpRequest<unknown>;
-  params: string[];
-  body: Record<string, unknown>;
-  query: URLSearchParams;
-  role: 'staff' | 'doctor' | 'admin';
-}
-
-class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-  ) {
-    super(code);
-  }
-}
-
 const DOCTOR_PHONE = '+201000000011';
 const ADMIN_PHONE = '+201000000001';
-const DOCTOR_ID = 'doc-sara';
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export class MockBackend {
   state: MockState = createMockState();
   private seq = 100;
+  /** Language of the request being handled (from Accept-Language). */
+  lang: 'ar' | 'en' = 'ar';
 
-  private id(prefix: string): string {
+  id(prefix: string): string {
     return `${prefix}-${++this.seq}`;
   }
 
@@ -101,7 +86,7 @@ export class MockBackend {
     return this.state.doctors.filter((d) => role !== 'doctor' || d.id === DOCTOR_ID);
   }
 
-  private doctorOrThrow(id: string, role: Ctx['role']) {
+  doctorOrThrow(id: string, role: Ctx['role']) {
     const doctor = this.scopedDoctors(role).find((d) => d.id === id || d.slug === id);
     if (!doctor) throw new ApiError(404, 'NOT_FOUND');
     return doctor;
@@ -113,7 +98,7 @@ export class MockBackend {
     return slot;
   }
 
-  private dto(a: MockAppointment): DashboardAppointment {
+  dto(a: MockAppointment): DashboardAppointment {
     const slot = this.state.slots.find((s) => s.id === a.slotId)!;
     const doctor = this.state.doctors.find((d) => d.id === slot.doctorId)!;
     const patient = this.state.patients.find((p) => p.id === a.patientId)!;
@@ -126,12 +111,12 @@ export class MockBackend {
       endsAt: slot.endsAt,
       startsAtLocal: DateTime.fromISO(slot.startsAt, { zone: MOCK_TZ }).toISO()!,
       timezone: MOCK_TZ,
-      doctor: { id: doctor.id, name: doctor.nameEn },
+      doctor: { id: doctor.id, name: this.lang === 'ar' ? doctor.nameAr : doctor.nameEn },
       patient: { id: patient.id, fullName: patient.fullName, phone: patient.phone },
       service: service
         ? {
             id: service.id,
-            name: service.nameEn,
+            name: this.lang === 'ar' ? service.nameAr : service.nameEn,
             durationMinutes: service.durationMinutes,
             priceEgp: service.priceEgp,
           }
@@ -139,10 +124,57 @@ export class MockBackend {
       patientNote: a.patientNote,
       cancelledBy: a.cancelledBy,
       cancelReason: a.cancelReason,
+      ...this.phase2Fields(a, doctor.consultationFeeEgp ?? null, service?.priceEgp ?? null),
     };
   }
 
-  private appointmentOrThrow(id: string, role: Ctx['role']): MockAppointment {
+  /** The phase 2 fields of an appointment DTO: family, mode, price, payment, insurance, review. */
+  private phase2Fields(a: MockAppointment, doctorFee: number | null, servicePrice: number | null) {
+    const extra = this.state.p2.extras[a.id] ?? {};
+    const member = this.state.p2.familyMembers.find((f) => f.id === extra.familyMemberId);
+    const provider = this.state.p2.insuranceProviders.find(
+      (p) => p.id === extra.insurance?.providerId,
+    );
+    const price = servicePrice ?? doctorFee;
+    const discount = extra.discountEgp ?? 0;
+    return {
+      familyMember: member
+        ? { id: member.id, fullName: member.fullName, relation: member.relation }
+        : null,
+      mode: extra.mode ?? 'InPerson',
+      priceEgp: price,
+      discountEgp: discount,
+      totalEgp: price === null ? null : Math.max(0, price - discount),
+      paymentStatus: extra.paymentStatus ?? 'Unpaid',
+      paymentId: extra.paymentId ?? null,
+      insurance:
+        extra.insurance && provider
+          ? {
+              provider: {
+                id: provider.id,
+                name: this.lang === 'ar' ? provider.nameAr : provider.nameEn,
+              },
+              memberNumber: extra.insurance.memberNumber,
+              status: extra.insurance.status,
+              note: extra.insurance.note ?? null,
+            }
+          : null,
+      review: extra.review ?? null,
+    } satisfies Partial<DashboardAppointment>;
+  }
+
+  /** A doctor as the dashboard returns it: with the accepted insurance providers by name. */
+  doctorView(doctor: MockState['doctors'][number]) {
+    const ids = this.state.p2.doctorInsurance[doctor.id] ?? [];
+    return {
+      ...doctor,
+      insuranceProviders: this.state.p2.insuranceProviders
+        .filter((p) => ids.includes(p.id))
+        .map((p) => ({ id: p.id, name: this.lang === 'ar' ? p.nameAr : p.nameEn })),
+    };
+  }
+
+  appointmentOrThrow(id: string, role: Ctx['role']): MockAppointment {
     const a = this.state.appointments.find((x) => x.id === id);
     const slot = a && this.state.slots.find((s) => s.id === a.slotId);
     if (!a || !slot || (role === 'doctor' && slot.doctorId !== DOCTOR_ID))
@@ -150,7 +182,7 @@ export class MockBackend {
     return a;
   }
 
-  private localDate(iso: string): string {
+  localDate(iso: string): string {
     return DateTime.fromISO(iso, { zone: MOCK_TZ }).toFormat('yyyy-MM-dd');
   }
 
@@ -166,7 +198,7 @@ export class MockBackend {
     };
   }
 
-  private page<T>(items: T[], query: URLSearchParams) {
+  page<T>(items: T[], query: URLSearchParams) {
     const page = Number(query.get('page') ?? 1);
     const pageSize = Number(query.get('pageSize') ?? 20);
     return {
@@ -275,6 +307,14 @@ export class MockBackend {
         if (slot.status !== 'Open') throw new ApiError(409, 'SLOT_TAKEN');
         if (DateTime.fromISO(slot.startsAt) < DateTime.now())
           throw new ApiError(409, 'SLOT_UNAVAILABLE');
+        if (this.state.p2.holidays.some((h) => h.date === this.localDate(slot.startsAt)))
+          throw new ApiError(409, 'CLINIC_CLOSED');
+        const mode = body['mode'] === 'Video' ? 'Video' : 'InPerson';
+        if (
+          mode === 'Video' &&
+          !this.state.doctors.find((d) => d.id === slot.doctorId)?.offersVideo
+        )
+          throw new ApiError(422, 'VALIDATION_FAILED');
         const phone = String(body['patientPhone']);
         if (phone === DOCTOR_PHONE || phone === ADMIN_PHONE)
           throw new ApiError(409, 'PHONE_IN_USE');
@@ -295,6 +335,7 @@ export class MockBackend {
           cancelReason: null,
         };
         this.state.appointments.push(appointment);
+        if (mode === 'Video') this.state.p2.extras[appointment.id] = { mode };
         return this.dto(appointment);
       },
     ],
@@ -342,11 +383,15 @@ export class MockBackend {
     ],
 
     // dashboard doctors
-    ['GET', /^\/dashboard\/doctors$/, ({ role }) => this.scopedDoctors(role)],
+    [
+      'GET',
+      /^\/dashboard\/doctors$/,
+      ({ role }) => this.scopedDoctors(role).map((d) => this.doctorView(d)),
+    ],
     [
       'GET',
       /^\/dashboard\/doctors\/([^/]+)$/,
-      ({ params, role }) => this.doctorOrThrow(params[0], role),
+      ({ params, role }) => this.doctorView(this.doctorOrThrow(params[0], role)),
     ],
     [
       'PUT',
@@ -354,7 +399,7 @@ export class MockBackend {
       ({ params, body, role }) => {
         const doctor = this.doctorOrThrow(params[0], role);
         Object.assign(doctor, body);
-        return doctor;
+        return this.doctorView(doctor);
       },
     ],
     [
@@ -515,7 +560,11 @@ export class MockBackend {
       'GET',
       /^\/features$/,
       () => ({
-        features: { ...BRAND.features },
+        // The demo shows everything: all thirteen phase 2 features are on.
+        features: {
+          ...BRAND.features,
+          ...Object.fromEntries(PHASE2_FEATURE_KEYS.map((key) => [key, true])),
+        },
         source: 'defaults',
         updatedAt: new Date().toISOString(),
       }),
@@ -602,6 +651,8 @@ export class MockBackend {
     ],
   ];
 
+  private readonly phase2 = phase2Routes(this);
+
   private finish(id: string, role: Ctx['role'], status: AppointmentStatus) {
     const a = this.appointmentOrThrow(id, role);
     this.requireConfirmed(a);
@@ -610,7 +661,7 @@ export class MockBackend {
     return this.dto(a);
   }
 
-  private overlaps(doctorId: string, start: DateTime, end: DateTime): boolean {
+  overlaps(doctorId: string, start: DateTime, end: DateTime): boolean {
     return this.state.slots.some(
       (s) =>
         s.doctorId === doctorId &&
@@ -619,11 +670,13 @@ export class MockBackend {
     );
   }
 
-  private bulk(doctorId: string, req: BulkSlotsRequest) {
+  bulk(doctorId: string, req: BulkSlotsRequest) {
     let created = 0;
     let skipped = 0;
     const startMin = minutesOfDay(req.startTime)!;
     const endMin = minutesOfDay(req.endTime)!;
+    const holidays = new Set(this.state.p2.holidays.map((h) => h.date));
+    const skippedSlots: { startsAt: string; endsAt: string; local: string; reason: string }[] = [];
     for (const date of dateRange(req.fromDate, req.toDate)) {
       if (!(req.daysOfWeek as string[]).includes(DAY_NAMES[dayOfWeekNumber(date)])) continue;
       for (let m = startMin; m + req.slotMinutes <= endMin; m += req.slotMinutes) {
@@ -634,6 +687,16 @@ export class MockBackend {
         if (!startIso || !endIso) continue;
         const start = DateTime.fromISO(startIso);
         const end = DateTime.fromISO(endIso);
+        if (holidays.has(date)) {
+          skipped++;
+          skippedSlots.push({
+            startsAt: startIso,
+            endsAt: endIso,
+            local: `${date} ${time(m)}`,
+            reason: 'holiday',
+          });
+          continue;
+        }
         if (start < DateTime.now() || this.overlaps(doctorId, start, end)) {
           skipped++;
           continue;
@@ -648,7 +711,7 @@ export class MockBackend {
         created++;
       }
     }
-    return { created, skipped };
+    return skippedSlots.length ? { created, skipped, skippedSlots } : { created, skipped };
   }
 
   // ---- dispatch ----
@@ -667,9 +730,11 @@ export class MockBackend {
     const role = (/^Bearer mock-access-(staff|doctor|admin)$/.exec(auth ?? '')?.[1] ??
       'staff') as Ctx['role'];
 
+    this.lang = req.headers.get('Accept-Language') === 'en' ? 'en' : 'ar';
+
     try {
       if (!isPublic && !auth) throw new ApiError(401, 'UNAUTHORIZED');
-      const route = this.routes.find(
+      const route = [...this.routes, ...this.phase2].find(
         ([method, pattern]) => method === req.method && pattern.test(path),
       );
       if (!route) throw new ApiError(404, 'NOT_FOUND');
@@ -691,7 +756,7 @@ export class MockBackend {
       return of(
         new HttpResponse({
           status: result === null ? 204 : 200,
-          body: result === null ? null : structuredClone(result),
+          body: result === null || result instanceof Blob ? result : structuredClone(result),
         }),
       ).pipe(delay(120));
     } catch (e) {
@@ -701,7 +766,7 @@ export class MockBackend {
           new HttpErrorResponse({
             status: e.status,
             url: req.url,
-            error: { status: e.status, code: e.code, title: e.code },
+            error: { status: e.status, code: e.code, title: e.code, ...e.extra },
           }),
       ).pipe(delay(120));
     }

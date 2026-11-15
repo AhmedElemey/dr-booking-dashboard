@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon';
 
 import { AppointmentStatus, Clinic, Doctor, Service, Slot } from '../api/models';
+import { Phase2State, seedPhase2 } from './mock-data-phase2';
 
 /** In-memory fixtures for the demo "mock" build: a Cairo clinic, 3 doctors, a week of slots. */
 
@@ -39,6 +40,8 @@ export interface MockState {
   slots: Slot[];
   appointments: MockAppointment[];
   patients: MockPatient[];
+  /** Phase 2 feature data (holidays, payments, reviews, ...). */
+  p2: Phase2State;
 }
 
 export const CLINIC_ID = 'clinic-noor';
@@ -105,6 +108,7 @@ const doctors: Doctor[] = [
     yearsExperience: 11,
     consultationFeeEgp: 300,
     isPublished: true,
+    offersVideo: true,
   },
   {
     id: 'doc-omar',
@@ -118,6 +122,7 @@ const doctors: Doctor[] = [
     yearsExperience: 8,
     consultationFeeEgp: 450,
     isPublished: true,
+    offersVideo: false,
   },
   {
     id: 'doc-mona',
@@ -131,6 +136,7 @@ const doctors: Doctor[] = [
     yearsExperience: 6,
     consultationFeeEgp: 350,
     isPublished: false,
+    offersVideo: false,
   },
 ];
 
@@ -200,6 +206,9 @@ const patients: MockPatient[] = [
   { id: 'pt-6', fullName: 'Youssef Adel', phone: '+201118765432' },
   { id: 'pt-7', fullName: 'مريم سعيد', phone: '+201227654321' },
   { id: 'pt-8', fullName: 'Tarek Hegazy', phone: '+201556543210' },
+  { id: 'pt-9', fullName: 'سامح رمضان', phone: '+201007788990' },
+  { id: 'pt-10', fullName: 'دينا شريف', phone: '+201116655443' },
+  { id: 'pt-11', fullName: 'Omar Nabil', phone: '+201228899001' },
 ];
 
 const SLOTS_PER_DAY = 10; // 09:00 - 14:00, 30 minutes each
@@ -256,6 +265,15 @@ const APPOINTMENTS: [
   [1, -1, 1, 4, 'NoShow', 'sv-4', null],
 ];
 
+/** Old completed visits [doctor index, days ago, patient index, service id] for the recall demo. */
+const HISTORIC: [number, number, number, string][] = [
+  [0, 250, 1, 'sv-2'],
+  [0, 215, 5, 'sv-1'],
+  [1, 200, 8, 'sv-5'],
+  [0, 330, 9, 'sv-3'],
+  [0, 190, 10, 'sv-1'],
+];
+
 /** Slots (doctor index, day, slot index) that are blocked in the demo. */
 const BLOCKED: [number, number, number][] = [
   [0, 1, 8],
@@ -288,6 +306,28 @@ export function createMockState(now: DateTime = DateTime.now()): MockState {
     });
   });
 
+  HISTORIC.forEach(([d, daysAgo, p, serviceId], n) => {
+    const start = now.setZone(MOCK_TZ).startOf('day').minus({ days: daysAgo }).plus({ hours: 10 });
+    const slot: Slot = {
+      id: `slot-h-${n}`,
+      doctorId: doctors[d].id,
+      startsAt: start.toUTC().toISO()!,
+      endsAt: start.plus({ minutes: 30 }).toUTC().toISO()!,
+      status: 'Reserved',
+    };
+    slots.push(slot);
+    appointments.push({
+      id: `apt-h${n + 1}`,
+      slotId: slot.id,
+      patientId: patients[p].id,
+      serviceId,
+      status: 'Completed',
+      patientNote: null,
+      cancelledBy: null,
+      cancelReason: null,
+    });
+  });
+
   for (const [d, day, i] of BLOCKED) {
     const slot = byId.get(slotId(d, day, i));
     if (slot && slot.status === 'Open') slot.status = 'Blocked';
@@ -301,5 +341,14 @@ export function createMockState(now: DateTime = DateTime.now()): MockState {
     slots,
     appointments,
     patients: structuredClone(patients),
+    p2: seedPhase2({
+      now,
+      tz: MOCK_TZ,
+      clinicId: CLINIC_ID,
+      appointments,
+      slots,
+      patients,
+      services,
+    }),
   };
 }

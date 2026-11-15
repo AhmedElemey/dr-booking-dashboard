@@ -1,0 +1,28 @@
+import { HttpRequest } from '@angular/common/http';
+
+/** Shared bits of the fake backend (kept apart so the route modules do not import each other). */
+
+export interface Ctx {
+  req: HttpRequest<unknown>;
+  params: string[];
+  body: Record<string, unknown>;
+  query: URLSearchParams;
+  role: 'staff' | 'doctor' | 'admin';
+}
+
+export type Handler = (ctx: Ctx) => unknown;
+
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    readonly extra: Record<string, unknown> = {},
+  ) {
+    super(code);
+  }
+}
+
+/** The demo doctor account (phone 01000000011) and the demo clinic's staff user. */
+export const DOCTOR_ID = 'doc-sara';
+export const DOCTOR_USER_ID = 'u-doc';
+export const STAFF_USER_ID = 'u-staff';

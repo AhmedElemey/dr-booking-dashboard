@@ -15,7 +15,8 @@
     "min": "min",
     "egp": "EGP",
     "actions": "Actions",
-    "edit": "Edit"
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "nav": {
     "label": "Main navigation",
@@ -28,7 +29,18 @@
     "clinic": "Clinic",
     "adminClinics": "Clinics",
     "account": "Account",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "waitingList": "Waiting list",
+    "patients": "Patients",
+    "payments": "Payments",
+    "reviews": "Reviews",
+    "reports": "Reports",
+    "holidays": "Holidays",
+    "workingHours": "Working hours",
+    "insurance": "Insurance",
+    "coupons": "Coupons",
+    "recall": "Recall campaigns",
+    "messages": "Messages"
   },
   "roles": {
     "Patient": "Patient",
@@ -94,7 +106,15 @@
     "NETWORK": "Cannot reach the server. Check your connection.",
     "ROLE_NOT_ALLOWED": "This account cannot use the clinic dashboard. Patients should use the {{brand}} app.",
     "FEATURE_DISABLED": "\"{{feature}}\" is switched off for this clinic. Ask the platform administrator to turn it on.",
-    "UNKNOWN": "Something went wrong. Please try again."
+    "UNKNOWN": "Something went wrong. Please try again.",
+    "CLINIC_CLOSED": "The clinic is closed on that day (holiday). Please pick another date.",
+    "COUPON_INVALID": "This coupon cannot be used.",
+    "ALREADY_REVIEWED": "This visit has already been reviewed.",
+    "NOT_REVIEWABLE": "Only completed visits can be reviewed.",
+    "PAYMENT_NOT_ALLOWED": "Payment is not possible for this appointment (it must be confirmed, upcoming, unpaid and have a price).",
+    "VIDEO_NOT_OPEN": "The video room is not open yet. It opens 15 minutes before the visit and closes 30 minutes after it ends.",
+    "ALREADY_WAITING": "This patient is already on the waiting list for that day.",
+    "PROVIDER_ERROR": "The payment or messaging provider did not respond. Please try again in a moment."
   },
   "features": {
     "dismiss": "Dismiss",
@@ -107,7 +127,20 @@
       "pushReminders": "Push reminders",
       "smsNotifications": "SMS notifications",
       "englishLanguage": "English language",
-      "multiBranch": "Multiple branches"
+      "multiBranch": "Multiple branches",
+      "videoConsultation": "Video consultation",
+      "waitingList": "Waiting list",
+      "familyAccounts": "Family accounts",
+      "whatsappReminders": "WhatsApp reminders",
+      "onlinePayments": "Online payments",
+      "insurance": "Insurance",
+      "holidayCalendar": "Holiday calendar",
+      "workingHoursTemplates": "Working-hours templates",
+      "patientRecords": "Patient records",
+      "reviews": "Reviews",
+      "promotions": "Promotions and coupons",
+      "recallCampaigns": "Recall campaigns",
+      "reports": "Reports"
     }
   },
   "account": {
@@ -165,7 +198,43 @@
     "final": "This appointment is closed and cannot be changed.",
     "updated": "Appointment updated",
     "cancelled": "Appointment cancelled",
-    "rescheduled": "Appointment rescheduled"
+    "rescheduled": "Appointment rescheduled",
+    "video": "Video consultation",
+    "forMember": "Visit for",
+    "forMemberLine": "For {{name}} ({{relation}}), booked by {{booker}}",
+    "mode": "Visit type",
+    "modes": {
+      "InPerson": "In person",
+      "Video": "Video consultation"
+    },
+    "joinVideo": "Join video",
+    "payment": "Payment",
+    "price": "Price",
+    "discount": "Discount",
+    "total": "Total",
+    "paymentStatus": {
+      "Unpaid": "Unpaid",
+      "Pending": "Payment pending",
+      "Paid": "Paid",
+      "Refunded": "Refunded"
+    },
+    "markPaid": "Mark paid (cash)",
+    "paidMarked": "Marked as paid.",
+    "refunded": "The refund was requested.",
+    "refundMessage": "Refund {{amount}} EGP for this appointment? This cannot be undone.",
+    "paymentNotFound": "The payment for this appointment could not be found.",
+    "insurance": "Insurance",
+    "insuranceStatus": {
+      "Pending": "Awaiting approval",
+      "Approved": "Approved",
+      "Rejected": "Rejected"
+    },
+    "insuranceNote": "Note for the patient (optional)",
+    "approve": "Approve",
+    "reject": "Reject",
+    "insuranceApproved": "Insurance approved.",
+    "insuranceRejected": "Insurance rejected.",
+    "review": "Patient review"
   },
   "slotPicker": {
     "none": "No open slots in the next 14 days.",
@@ -189,7 +258,8 @@
     "patientPhone": "Patient mobile number",
     "patientName": "Patient name",
     "note": "Note (optional)",
-    "submit": "Book appointment"
+    "submit": "Book appointment",
+    "mode": "Visit type"
   },
   "doctors": {
     "title": "Doctors",
@@ -213,7 +283,11 @@
     "years": "years",
     "feeHint": "Shown for information only",
     "bioAr": "Bio (Arabic)",
-    "bioEn": "Bio (English)"
+    "bioEn": "Bio (English)",
+    "offersVideo": "Offers video consultations",
+    "offersVideoHint": "Patients can then choose a video visit when booking with this doctor.",
+    "insurance": "Accepted insurance providers",
+    "insuranceHint": "Patients can book with insurance only with the providers selected here."
   },
   "services": {
     "intro": "Treatment types shown to patients. Duration prefills the slot length.",
@@ -335,5 +409,392 @@
     "userCreated": "Account created",
     "userDeactivated": "Account deactivated",
     "userReactivated": "Account reactivated"
+  },
+  "family": {
+    "relation": {
+      "Child": "Child",
+      "Spouse": "Spouse",
+      "Parent": "Parent",
+      "Sibling": "Sibling",
+      "Other": "Other"
+    }
+  },
+  "holidays": {
+    "title": "Holidays",
+    "intro": "Days the clinic is closed. Patients cannot book on these days. Appointments already booked are not touched.",
+    "add": "Add a holiday",
+    "addAction": "Add",
+    "date": "Date",
+    "name": "Name",
+    "nameAr": "Name (Arabic)",
+    "nameEn": "Name (English)",
+    "source": "Source",
+    "sources": {
+      "Manual": "Added by the clinic",
+      "EgyptPublic": "Egyptian public holiday"
+    },
+    "import": "Import Egyptian holidays",
+    "imported": "Imported: {{created}} added, {{skipped}} already there.",
+    "added": "Holiday added.",
+    "deleted": "Holiday deleted.",
+    "deleteTitle": "Delete holiday",
+    "deleteMessage": "Delete \"{{name}}\"? Patients will be able to book that day again.",
+    "empty": "No holidays for this year.",
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "conflictsTitle": "{{count}} appointment(s) already booked on this day",
+    "conflictsNote": "They were not changed. Contact the patients or reschedule them from the agenda.",
+    "checkConflicts": "Appointments on this day",
+    "noConflicts": "No appointments are booked on that day."
+  },
+  "workingHours": {
+    "title": "Working-hours templates",
+    "intro": "A weekly pattern of working hours. Apply it to a doctor from the slot calendar to create all the slots at once.",
+    "add": "New template",
+    "addTitle": "New working-hours template",
+    "editTitle": "Edit working-hours template",
+    "name": "Template name",
+    "slotMinutes": "Slot length",
+    "rules": "Weekly hours",
+    "rule": "Rule",
+    "day": "Day",
+    "from": "From",
+    "to": "To",
+    "removeRule": "Remove this rule",
+    "addRule": "Add hours",
+    "fillWeek": "Sunday to Thursday, 09:00-14:00",
+    "issues": {
+      "name": "Enter a template name.",
+      "none": "Add at least one day with working hours.",
+      "times": "Each rule needs an end time after its start time.",
+      "overlap": "Two rules on the same day overlap.",
+      "tooShort": "A rule is shorter than the slot length."
+    },
+    "empty": "No templates yet.",
+    "saved": "Template saved.",
+    "deleted": "Template deleted.",
+    "deleteTitle": "Delete template",
+    "deleteMessage": "Delete \"{{name}}\"? Slots already created from it are kept."
+  },
+  "applyTemplate": {
+    "button": "Apply template",
+    "title": "Apply a working-hours template",
+    "intro": "Creates this doctor's slots over the dates below. Days that are holidays and times that overlap existing slots are skipped.",
+    "noTemplates": "There are no templates yet. Create one under Working hours.",
+    "template": "Template",
+    "apply": "Apply",
+    "badRange": "Choose a start date and an end date within 92 days.",
+    "holidaySkipped": "{{count}} slot(s) skipped because the clinic is closed (holiday)."
+  },
+  "waitingList": {
+    "title": "Waiting list",
+    "intro": "Patients waiting for a slot. They are notified automatically when a slot opens; you can also notify them yourself.",
+    "date": "Day",
+    "clearDate": "Clear date",
+    "empty": "Nobody is waiting.",
+    "col": {
+      "patient": "Patient",
+      "notified": "Notified"
+    },
+    "forMember": "For {{name}}",
+    "status": {
+      "Waiting": "Waiting",
+      "Notified": "Notified",
+      "Booked": "Booked",
+      "Cancelled": "Cancelled",
+      "Expired": "Expired"
+    },
+    "notify": "Notify",
+    "notified": "The patient was notified."
+  },
+  "payments": {
+    "title": "Payments",
+    "from": "From",
+    "to": "To",
+    "collected": "Collected in this list",
+    "empty": "No payments in this period.",
+    "col": {
+      "date": "Date",
+      "patient": "Patient",
+      "method": "Method",
+      "amount": "Amount"
+    },
+    "method": {
+      "Online": "Online",
+      "Cash": "Cash"
+    },
+    "status": {
+      "Pending": "Pending",
+      "Paid": "Paid",
+      "Failed": "Failed",
+      "Refunded": "Refunded",
+      "Cancelled": "Cancelled"
+    },
+    "refund": "Refund",
+    "refundTitle": "Refund payment",
+    "refundMessage": "Refund {{amount}} EGP to {{name}}? This cannot be undone.",
+    "refunded": "The refund was requested."
+  },
+  "insurance": {
+    "title": "Insurance providers",
+    "intro": "Insurance companies the clinic works with. Choose which ones each doctor accepts on the doctor's profile.",
+    "add": "Add provider",
+    "addTitle": "Add insurance provider",
+    "editTitle": "Edit insurance provider",
+    "name": "Provider",
+    "nameAr": "Name (Arabic)",
+    "nameEn": "Name (English)",
+    "active": "Active",
+    "inactive": "Inactive",
+    "empty": "No insurance providers yet.",
+    "saved": "Provider saved.",
+    "deleted": "Provider deleted.",
+    "deleteTitle": "Delete provider",
+    "deleteMessage": "Delete \"{{name}}\"?"
+  },
+  "patients": {
+    "title": "Patients",
+    "search": "Search by name or phone",
+    "searchAction": "Search",
+    "empty": "No patients found.",
+    "lastVisit": "Last visit",
+    "visits": "Appointments",
+    "open": "Open record",
+    "record": "Patient record"
+  },
+  "records": {
+    "recordOf": "Record of",
+    "theAccountHolder": "The account holder",
+    "medicalInfo": "Medical information",
+    "bloodType": "Blood type",
+    "allergies": "Allergies",
+    "chronic": "Chronic conditions",
+    "medications": "Current medications",
+    "updatedAt": "Updated {{date}}",
+    "medicalSaved": "Medical information saved.",
+    "timeline": "Appointments",
+    "noAppointments": "No appointments yet.",
+    "entries": "Record entries",
+    "add": "Add entry",
+    "empty": "No entries yet.",
+    "kinds": {
+      "Note": "Note",
+      "Diagnosis": "Diagnosis",
+      "Prescription": "Prescription",
+      "Attachment": "Attachment"
+    },
+    "visible": "Visible to patient",
+    "private": "Clinic only",
+    "visibleToPatient": "Visible to the patient",
+    "visibleHint": "When on, the patient sees this entry in the app under My records.",
+    "openAttachment": "Open attachment",
+    "saved": "Entry saved.",
+    "deleted": "Entry deleted.",
+    "deleteTitle": "Delete entry",
+    "deleteMessage": "Delete \"{{name}}\"?",
+    "addTitle": "Add record entry",
+    "editTitle": "Edit record entry",
+    "kind": "Type",
+    "appointment": "Related appointment",
+    "noAppointment": "None",
+    "entryTitle": "Title",
+    "body": "Details",
+    "attach": "Attach file",
+    "attachHint": "PDF, JPG or PNG, up to 10 MB",
+    "hasAttachment": "A file is already attached; pick one to replace it",
+    "attachmentInvalid": "The file must be a PDF, JPG or PNG of at most 10 MB."
+  },
+  "reviews": {
+    "title": "Reviews",
+    "empty": "No reviews yet.",
+    "noComment": "No comment.",
+    "yourReply": "The clinic's reply",
+    "reply": "Reply",
+    "editReply": "Edit reply",
+    "sendReply": "Send reply",
+    "hide": "Hide",
+    "publish": "Publish",
+    "hidden": "Review hidden.",
+    "published": "Review published.",
+    "replied": "Reply saved.",
+    "ratingOf": "{{rating}} out of 5",
+    "status": {
+      "Published": "Published",
+      "Hidden": "Hidden"
+    }
+  },
+  "coupons": {
+    "title": "Coupons",
+    "add": "New coupon",
+    "addTitle": "New coupon",
+    "editTitle": "Edit coupon",
+    "code": "Code",
+    "codeHint": "Letters A-Z, digits and dashes, 3 to 20 characters",
+    "codeInvalid": "Use 3 to 20 characters: A-Z, 0-9 and dashes.",
+    "titleAr": "Title (Arabic)",
+    "titleEn": "Title (English)",
+    "descriptionAr": "Description (Arabic)",
+    "descriptionEn": "Description (English)",
+    "discountType": "Discount type",
+    "types": {
+      "Percent": "Percentage",
+      "Fixed": "Fixed amount"
+    },
+    "value": "Value",
+    "percentSign": "%",
+    "percentRange": "Between 1 and 100",
+    "positive": "Must be a positive number",
+    "maxDiscount": "Maximum discount",
+    "validFrom": "Valid from",
+    "validTo": "Valid until",
+    "windowInvalid": "The end date must not be before the start date.",
+    "maxRedemptions": "Total uses",
+    "unlimitedHint": "Leave empty for unlimited",
+    "perPatientLimit": "Uses per patient",
+    "anyDoctor": "Any doctor",
+    "anyService": "Any service",
+    "isPublic": "Show to patients as an offer",
+    "isActive": "Active",
+    "inactive": "Inactive",
+    "public": "Public",
+    "offer": "Offer",
+    "discount": "Discount",
+    "validity": "Validity",
+    "used": "Used",
+    "redemptions": "Redemptions",
+    "redemptionsTitle": "Redemptions of {{code}}",
+    "noRedemptions": "This coupon has not been used yet.",
+    "empty": "No coupons yet.",
+    "saved": "Coupon saved.",
+    "deleted": "Coupon deleted.",
+    "deleteTitle": "Delete coupon",
+    "deleteMessage": "Delete coupon {{code}}?"
+  },
+  "recall": {
+    "title": "Recall campaigns",
+    "intro": "Message patients who have not visited for a while and invite them back. Patients who opted out of marketing are never contacted.",
+    "add": "New campaign",
+    "addTitle": "New recall campaign",
+    "editTitle": "Edit recall campaign",
+    "name": "Campaign name",
+    "messageAr": "Message (Arabic)",
+    "messageEn": "Message (English)",
+    "placeholders": "You can use {name}, {doctor}, {clinic} and {link} in the message.",
+    "channel": "Channel",
+    "channels": {
+      "Auto": "Automatic",
+      "Sms": "SMS",
+      "WhatsApp": "WhatsApp",
+      "Push": "App notification"
+    },
+    "months": "Months since last visit",
+    "monthsHint": "Patients whose last visit was at least this long ago",
+    "monthsInvalid": "Between 1 and 60 months",
+    "mode": "Run",
+    "modes": {
+      "OneOff": "One time",
+      "Recurring": "Recurring"
+    },
+    "modeHint": {
+      "OneOff": "Sent only when you press Send now.",
+      "Recurring": "Runs every day at 10:00 clinic time."
+    },
+    "active": "Active",
+    "inactive": "Inactive",
+    "lastRun": "Last run",
+    "preview": "Preview audience",
+    "sendNow": "Send now",
+    "sends": "Sends log",
+    "previewTitle": "Audience of {{name}}",
+    "audience": "patients would receive this message",
+    "sample": "Sample",
+    "sendsTitle": "Sends of {{name}}",
+    "noSends": "Nothing has been sent yet.",
+    "sendStatus": {
+      "Sent": "Sent",
+      "Failed": "Failed",
+      "Skipped": "Skipped"
+    },
+    "sendNowTitle": "Send campaign now",
+    "sendNowMessage": "Send \"{{name}}\" to its audience now?",
+    "sendResult": "Done: {{sent}} sent, {{failed}} failed, {{skipped}} skipped.",
+    "saved": "Campaign saved.",
+    "deleted": "Campaign deleted.",
+    "deleteTitle": "Delete campaign",
+    "deleteMessage": "Delete \"{{name}}\"?",
+    "empty": "No campaigns yet."
+  },
+  "reports": {
+    "title": "Reports",
+    "groupBy": "Group by",
+    "group": {
+      "Day": "Day",
+      "Week": "Week",
+      "Month": "Month"
+    },
+    "rangeInvalid": "Choose a start date and an end date, at most 366 days apart.",
+    "bookings": "Bookings",
+    "revenue": "Revenue",
+    "csv": "Download CSV",
+    "kpi": {
+      "booked": "Booked",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "noShow": "No-shows",
+      "cancellationRate": "Cancellation rate",
+      "expectedEgp": "Expected",
+      "collectedEgp": "Collected",
+      "onlineEgp": "Online",
+      "cashEgp": "Cash",
+      "discountsEgp": "Discounts",
+      "refundsEgp": "Refunds"
+    },
+    "bookingsChart": "Bookings per period: booked, completed and cancelled",
+    "revenueChart": "Revenue per period: expected and collected, in EGP",
+    "byDoctor": "By doctor",
+    "byService": "By service",
+    "bySource": "Booked by",
+    "source": {
+      "patient": "Patients (app and website)",
+      "staff": "Clinic staff"
+    }
+  },
+  "messages": {
+    "title": "Messages log",
+    "intro": "Every push, SMS and WhatsApp message the system sent.",
+    "channel": "Channel",
+    "channels": {
+      "Push": "App notification",
+      "Sms": "SMS",
+      "WhatsApp": "WhatsApp"
+    },
+    "to": "To",
+    "kind": "Type",
+    "body": "Message",
+    "status": {
+      "Sent": "Sent",
+      "Failed": "Failed"
+    },
+    "empty": "No messages in this period.",
+    "kinds": {
+      "booking_confirmation": "Booking confirmation",
+      "appointment_confirmation": "Booking confirmation",
+      "appointment_reminder": "Appointment reminder",
+      "reminder": "Appointment reminder",
+      "clinic_cancellation": "Cancelled by the clinic",
+      "appointment_cancelled": "Cancelled by the clinic",
+      "waiting_list": "Waiting list",
+      "recall": "Recall campaign",
+      "review_request": "Rate your visit"
+    }
+  },
+  "couponReason": {
+    "NotFound": "This coupon code does not exist.",
+    "Expired": "This coupon has expired.",
+    "NotStarted": "This coupon is not valid yet.",
+    "Exhausted": "This coupon has reached its redemption limit.",
+    "PerPatientLimit": "This patient has already used this coupon the maximum number of times.",
+    "NotApplicable": "This coupon does not apply to this doctor or service.",
+    "NoPrice": "This appointment has no price, so a coupon cannot be applied."
   }
 }

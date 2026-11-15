@@ -57,15 +57,32 @@ describe('TemplateDialog', () => {
     expect(c['problems']()).toContain('none');
   });
 
+  it('offers only slot lengths the API accepts (multiples of 15)', () => {
+    const { c } = open();
+    expect(c['lengths']).toEqual([15, 30, 45, 60, 90, 120]);
+    expect(c['lengths'].every((m: number) => m % 15 === 0)).toBe(true);
+  });
+
+  it('blocks times that are not on a 15-minute boundary', () => {
+    const { h, c } = open();
+    c['name'].set('Mornings');
+    c['rules'].set([{ uid: 1, dayOfWeek: 'Sunday', start: '09:10', end: '14:00' }]);
+    expect(c['problems']()).toContain('grid');
+    c['save']();
+    h.backend.expectNone(() => true);
+    c['rules'].set([{ uid: 1, dayOfWeek: 'Sunday', start: '09:15', end: '14:45' }]);
+    expect(c['problems']()).not.toContain('grid');
+  });
+
   it('posts the template without the editor ids', () => {
     const { h, d, c } = open();
     c['name'].set(' Mornings ');
-    c['slotMinutes'].set(20);
+    c['slotMinutes'].set(45);
     c['save']();
     const req = h.backend.expectOne((r) => r.method === 'POST');
     expect(req.request.body).toEqual({
       name: 'Mornings',
-      slotMinutes: 20,
+      slotMinutes: 45,
       rules: [{ dayOfWeek: 'Sunday', start: '09:00', end: '14:00' }],
     });
     req.flush({ id: 't1', rules: [] });

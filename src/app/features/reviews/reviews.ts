@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -8,6 +15,7 @@ import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { DoctorsApi } from '../../core/api/doctors.api';
 import { Doctor } from '../../core/api/models';
 import { DashboardReview, PageResult, ReviewStatus } from '../../core/api/phase2.models';
@@ -131,7 +139,7 @@ import { Rating } from '../../shared/rating';
                   <mat-icon>reply</mat-icon
                   >{{ (r.reply ? 'reviews.editReply' : 'reviews.reply') | translate }}
                 </button>
-                @if (r.status === 'Published') {
+                @if (canModerate() && r.status === 'Published') {
                   <button
                     mat-stroked-button
                     type="button"
@@ -140,7 +148,7 @@ import { Rating } from '../../shared/rating';
                   >
                     <mat-icon>visibility_off</mat-icon>{{ 'reviews.hide' | translate }}
                   </button>
-                } @else {
+                } @else if (canModerate()) {
                   <button
                     mat-stroked-button
                     type="button"
@@ -237,6 +245,9 @@ export class Reviews {
   private readonly api = inject(ReviewsApi);
   private readonly doctorsApi = inject(DoctorsApi);
   private readonly toast = inject(ToastService);
+  private readonly auth = inject(AuthService);
+  /** Hide and publish are for clinic staff; doctors can only reply. */
+  protected readonly canModerate = computed(() => this.auth.role() === 'ClinicStaff');
   private readonly languages = inject(LanguageService);
   protected readonly clinicTime = inject(ClinicTime);
 
@@ -295,7 +306,7 @@ export class Reviews {
   }
 
   protected patientLabel(r: DashboardReview): string {
-    return r.patient?.fullName || r.patientFirstName || '';
+    return r.patientName || '';
   }
 
   private run(review: DashboardReview, request$: ReturnType<ReviewsApi['hide']>, key: string) {

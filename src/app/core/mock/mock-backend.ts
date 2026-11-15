@@ -3,6 +3,7 @@ import {
   HttpEvent,
   HttpInterceptorFn,
   HttpRequest,
+  HttpHeaders,
   HttpResponse,
 } from '@angular/common/http';
 import { DateTime } from 'luxon';
@@ -20,7 +21,7 @@ import { API_ROOT } from '../config/api-url';
 import { BRAND } from '../config/brand';
 import { PHASE2_FEATURE_KEYS } from '../config/brand';
 import { dateRange, dayOfWeekNumber, localToUtcIso, minutesOfDay } from '../time/clinic-time';
-import { ApiError, Ctx, DOCTOR_ID, Handler } from './mock-core';
+import { ApiError, Ctx, DOCTOR_ID, Handler, WithHeaders } from './mock-core';
 import { CLINIC_ID, MOCK_TZ, MockAppointment, MockState, createMockState } from './mock-data';
 import { phase2Routes } from './mock-phase2';
 
@@ -146,7 +147,6 @@ export class MockBackend {
       discountEgp: discount,
       totalEgp: price === null ? null : Math.max(0, price - discount),
       paymentStatus: extra.paymentStatus ?? 'Unpaid',
-      paymentId: extra.paymentId ?? null,
       insurance:
         extra.insurance && provider
           ? {
@@ -752,11 +752,13 @@ export class MockBackend {
         ),
         role,
       });
+      const payload = result instanceof WithHeaders ? result.body : result;
       // Clone so callers never share references with the store.
       return of(
         new HttpResponse({
-          status: result === null ? 204 : 200,
-          body: result === null || result instanceof Blob ? result : structuredClone(result),
+          status: payload === null ? 204 : 200,
+          headers: result instanceof WithHeaders ? new HttpHeaders(result.headers) : undefined,
+          body: payload === null || payload instanceof Blob ? payload : structuredClone(payload),
         }),
       ).pipe(delay(120));
     } catch (e) {

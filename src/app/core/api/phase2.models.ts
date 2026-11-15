@@ -204,8 +204,8 @@ export interface DashboardReview {
   id: string;
   appointmentId?: string;
   doctor: { id: string; name: string };
-  patient?: { id?: string; fullName: string | null } | null;
-  patientFirstName?: string | null;
+  /** Flat patient name, as the API sends it. */
+  patientName?: string | null;
   rating: number;
   comment?: string | null;
   status: ReviewStatus;

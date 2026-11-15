@@ -17,6 +17,7 @@ import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, switchMap } from 'rxjs';
 
+import { AuthService } from '../../core/auth/auth.service';
 import { DoctorsApi } from '../../core/api/doctors.api';
 import { Doctor } from '../../core/api/models';
 import { PaymentsApi } from '../../core/api/payments.api';
@@ -130,7 +131,7 @@ const STATUSES: PaymentRecordStatus[] = ['Pending', 'Paid', 'Failed', 'Refunded'
                       }}</span>
                     </td>
                     <td class="end">
-                      @if (p.status === 'Paid') {
+                      @if (p.status === 'Paid' && canRefund()) {
                         <button
                           mat-stroked-button
                           type="button"
@@ -171,6 +172,10 @@ export class Payments {
   private readonly toast = inject(ToastService);
   private readonly languages = inject(LanguageService);
   protected readonly clinicTime = inject(ClinicTime);
+
+  private readonly auth = inject(AuthService);
+  /** Refunds are for clinic staff only: the API answers 403 to a doctor. */
+  protected readonly canRefund = computed(() => this.auth.role() === 'ClinicStaff');
 
   protected readonly statuses = STATUSES;
   protected readonly doctors = signal<Doctor[]>([]);

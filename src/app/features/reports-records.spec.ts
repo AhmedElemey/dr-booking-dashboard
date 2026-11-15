@@ -1,5 +1,6 @@
 import { flushDoctors, internals, pendingGet, setupPage } from '../../testing/phase2';
-import { PatientRecord } from './patients/patient-record';
+import { API_ROOT } from '../core/config/api-url';
+import { PatientRecord, attachmentFileName } from './patients/patient-record';
 import { MAX_REPORT_DAYS, Reports } from './reports/reports';
 
 const bookings = {
@@ -91,6 +92,14 @@ describe('PatientRecord', () => {
         visibleToPatient: false,
         createdAt: '2026-11-01T10:00:00Z',
       },
+      {
+        id: 'e2',
+        kind: 'Attachment',
+        title: 'Panoramic X-ray',
+        attachmentUrl: `${API_ROOT}/dashboard/records/e2/attachment`,
+        visibleToPatient: false,
+        createdAt: '2026-11-02T10:00:00Z',
+      },
     ],
   };
 
@@ -131,5 +140,30 @@ describe('PatientRecord', () => {
     internals(h.fixture)['remove'](detail.records[0]);
     h.backend.expectOne((r) => r.method === 'DELETE' && r.url.endsWith('/records/e1')).flush(null);
     pendingGet(h.backend, '/dashboard/patients/u1').flush(detail);
+  });
+
+  it('fetches an attachment with the token as a blob instead of linking to it', async () => {
+    const create = vi.fn(() => 'blob:x');
+    Object.assign(URL, { createObjectURL: create, revokeObjectURL: vi.fn() });
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
+    const h = await open();
+    expect(h.el.querySelector('a.attachment')).toBeNull();
+    (h.el.querySelector('button.attachment') as HTMLButtonElement).click();
+    const req = h.backend.expectOne(`${API_ROOT}/dashboard/records/e2/attachment`);
+    expect(req.request.responseType).toBe('blob');
+    req.flush(new Blob(['%PDF'], { type: 'application/pdf' }));
+    expect(create).toHaveBeenCalled();
+    expect(click).toHaveBeenCalled();
+    click.mockRestore();
+  });
+
+  it('names the download after the record and the file type', () => {
+    const entry = { title: 'X/ray: front' } as never;
+    expect(attachmentFileName(entry, new Blob([], { type: 'application/pdf' }))).toBe(
+      'X ray front.pdf',
+    );
+    expect(attachmentFileName({ title: '' } as never, new Blob([]))).toBe('attachment');
   });
 });

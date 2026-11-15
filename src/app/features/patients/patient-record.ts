@@ -23,10 +23,26 @@ import { PatientsApi } from '../../core/api/patients.api';
 import { PatientDetail, RecordEntry } from '../../core/api/phase2.models';
 import { AuthService } from '../../core/auth/auth.service';
 import { ToastService } from '../../core/http/toast.service';
+import { saveBlob } from '../../core/util/download';
 import { ClinicTime } from '../../core/time/clinic-time.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { StatusChip } from '../../shared/status-chip';
 import { RecordDialog } from './record-dialog';
+
+const EXTENSIONS: Record<string, string> = {
+  'application/pdf': 'pdf',
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+  'image/svg+xml': 'svg',
+};
+
+/** A download name from the record title and the blob's type, e.g. `Panoramic X-ray.pdf`. */
+export function attachmentFileName(entry: RecordEntry, blob: Blob): string {
+  const base = entry.title.replace(/[\\/:*?"<>|\s]+/g, ' ').trim() || 'attachment';
+  const ext = EXTENSIONS[blob.type];
+  return ext ? `${base}.${ext}` : base;
+}
 
 export const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -196,10 +212,16 @@ const KIND_ICONS: Record<string, string> = {
                     <p class="body">{{ r.body }}</p>
                   }
                   @if (r.attachmentUrl) {
-                    <a class="attachment" [href]="r.attachmentUrl" target="_blank" rel="noopener">
+                    <button
+                      mat-button
+                      type="button"
+                      class="attachment"
+                      [disabled]="downloadingId() === r.id"
+                      (click)="openAttachment(r)"
+                    >
                       <mat-icon aria-hidden="true">attach_file</mat-icon
                       >{{ 'records.openAttachment' | translate }}
-                    </a>
+                    </button>
                   }
                   <div class="muted small">
                     {{ clinicTime.date(r.createdAt) }}
@@ -347,6 +369,7 @@ export class PatientRecord {
   protected readonly savingMedical = signal(false);
   /** '' = the account holder; otherwise a family member id. */
   protected readonly memberId = signal('');
+  protected readonly downloadingId = signal<string | null>(null);
   protected readonly canEditAll = computed(() => this.auth.role() === 'ClinicStaff');
 
   protected readonly medical = this.fb.nonNullable.group({
@@ -389,6 +412,19 @@ export class PatientRecord {
 
   protected canEdit(entry: RecordEntry): boolean {
     return this.canEditAll() || entry.authorUserId === this.auth.user()?.id;
+  }
+
+  /** The attachment sits behind the API's authorization, so fetch it with the token as a blob. */
+  protected openAttachment(entry: RecordEntry): void {
+    if (!entry.attachmentUrl || this.downloadingId()) return;
+    this.downloadingId.set(entry.id);
+    this.api.fetchAttachment(entry.attachmentUrl).subscribe({
+      next: (blob) => {
+        this.downloadingId.set(null);
+        saveBlob(blob, attachmentFileName(entry, blob));
+      },
+      error: () => this.downloadingId.set(null),
+    });
   }
 
   protected saveMedical(): void {

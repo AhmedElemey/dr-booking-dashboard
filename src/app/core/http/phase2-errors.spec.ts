@@ -13,7 +13,12 @@ import ar from '../../../../public/i18n/ar.json';
 import en from '../../../../public/i18n/en.json';
 import { provideTestTranslations } from '../../../testing/test-providers';
 import { API_ROOT } from '../config/api-url';
-import { COUPON_REASONS, KNOWN_ERROR_CODES, couponReasonKey } from './error-codes';
+import {
+  COUPON_REASONS,
+  KNOWN_ERROR_CODES,
+  couponReasonKey,
+  validationMessages,
+} from './error-codes';
 import { errorInterceptor } from './error.interceptor';
 
 const NEW_CODES = [
@@ -76,6 +81,31 @@ describe('phase 2 error codes', () => {
   it('maps CLINIC_CLOSED to its message', () => {
     fail({ status: 409, code: 'CLINIC_CLOSED' }, 409);
     expect(open.mock.calls[0][0]).toBe(en.errors.CLINIC_CLOSED);
+  });
+
+  it('appends the API field messages to a validation failure', () => {
+    fail({
+      status: 400,
+      code: 'VALIDATION_FAILED',
+      errors: { date: ['This date is already a holiday.'] },
+    });
+    expect(open.mock.calls[0][0]).toBe(
+      `${en.errors.VALIDATION_FAILED} This date is already a holiday.`,
+    );
+  });
+
+  it('shows the plain message when a validation failure has no field errors', () => {
+    fail({ status: 400, code: 'VALIDATION_FAILED' });
+    expect(open.mock.calls[0][0]).toBe(en.errors.VALIDATION_FAILED);
+  });
+
+  it('validationMessages flattens and limits field errors', () => {
+    const problem = new HttpErrorResponse({
+      status: 400,
+      error: { errors: { a: ['one', 'two'], b: ['three', 'four'], c: [] } },
+    });
+    expect(validationMessages(problem)).toEqual(['one', 'two', 'three']);
+    expect(validationMessages(null)).toEqual([]);
   });
 
   it('couponReasonKey only answers for known reasons', () => {

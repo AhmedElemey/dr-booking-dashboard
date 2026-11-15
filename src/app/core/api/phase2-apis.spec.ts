@@ -146,7 +146,56 @@ describe('Phase 2 API services', () => {
     const req = http.expectOne(`${API_ROOT}/dashboard/records/e1/attachment`);
     expect(req.request.method).toBe('PUT');
     expect(req.request.body instanceof FormData).toBe(true);
-    req.flush({});
+    req.flush({ attachmentUrl: '/api/v1/dashboard/records/e1/attachment' });
+  });
+
+  it('reads the patients total from X-Total-Count', () => {
+    const api = TestBed.inject(PatientsApi);
+    let page: { totalCount: number; page: number; pageSize: number } | undefined;
+    api.list('', 2).subscribe((p) => (page = p));
+    const req = http.expectOne((r) => r.url === `${API_ROOT}/dashboard/patients`);
+    req.flush([{ id: 'u1' }], { headers: { 'X-Total-Count': '41' } });
+    expect(page).toMatchObject({ totalCount: 41, page: 2, pageSize: 20 });
+  });
+
+  it('fetches an attachment as a blob with an API path, relative or absolute', () => {
+    const api = TestBed.inject(PatientsApi);
+    let blob: Blob | undefined;
+    api.fetchAttachment(`${API_ROOT}/dashboard/records/e1/attachment`).subscribe((b) => (blob = b));
+    const req = http.expectOne(`${API_ROOT}/dashboard/records/e1/attachment`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    expect(blob?.type).toBe('application/pdf');
+
+    api.fetchAttachment('/api/v1/dashboard/records/e2/attachment').subscribe();
+    const rel = http.expectOne((r) => r.url.endsWith('/api/v1/dashboard/records/e2/attachment'));
+    expect(rel.request.url.startsWith(API_ROOT)).toBe(true);
+    rel.flush(new Blob());
+  });
+
+  it('typed mutation responses match the API', () => {
+    const wait = TestBed.inject(WaitingListApi);
+    let notified: { notified: boolean } | undefined;
+    wait.notify('w1').subscribe((r) => (notified = r));
+    expectReq('POST', '/dashboard/waiting-list/w1/notify', {}, { notified: true });
+    expect(notified).toEqual({ notified: true });
+
+    let providers: { id: string; name: string }[] | undefined;
+    TestBed.inject(InsuranceApi)
+      .setDoctorProviders('d1', ['i1'])
+      .subscribe((r) => (providers = r));
+    expectReq('PUT', '/dashboard/doctors/d1/insurance-providers', { providerIds: ['i1'] }, [
+      { id: 'i1', name: 'Allianz' },
+    ]);
+    expect(providers?.[0].name).toBe('Allianz');
+
+    let paid: { paymentStatus?: string } | undefined;
+    TestBed.inject(PaymentsApi)
+      .markPaid('a1')
+      .subscribe((r) => (paid = r));
+    expectReq('POST', '/dashboard/appointments/a1/mark-paid', {}, { paymentStatus: 'Paid' });
+    expect(paid?.paymentStatus).toBe('Paid');
   });
 
   it('insurance', () => {

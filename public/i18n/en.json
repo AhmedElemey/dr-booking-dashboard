@@ -222,6 +222,7 @@
     "paidMarked": "Marked as paid.",
     "refunded": "The refund was requested.",
     "refundMessage": "Refund {{amount}} EGP for this appointment? This cannot be undone.",
+    "videoLinkInvalid": "The video link is not a secure (https) address, so it was not opened.",
     "paymentNotFound": "The payment for this appointment could not be found.",
     "insurance": "Insurance",
     "insuranceStatus": {
@@ -467,6 +468,7 @@
       "name": "Enter a template name.",
       "none": "Add at least one day with working hours.",
       "times": "Each rule needs an end time after its start time.",
+      "grid": "Start and end times, and the slot length, must be on 15-minute steps (for example 09:00, 09:15, 09:30).",
       "overlap": "Two rules on the same day overlap.",
       "tooShort": "A rule is shorter than the slot length."
     },

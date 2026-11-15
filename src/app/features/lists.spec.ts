@@ -1,3 +1,5 @@
+import { TestBed } from '@angular/core/testing';
+
 import { flushDoctors, internals, pendingGet, setupPage } from '../../testing/phase2';
 import { Messages } from './messages/messages';
 import { Patients } from './patients/patients';
@@ -72,7 +74,7 @@ describe('Payments', () => {
   });
 
   it('refunds after confirmation and reloads', async () => {
-    const h = setupPage(Payments);
+    const h = setupPage(Payments, { role: 'ClinicStaff' });
     h.fixture.detectChanges();
     flushDoctors(h.backend);
     pendingGet(h.backend, '/dashboard/payments').flush([payment('Paid')]);
@@ -82,6 +84,21 @@ describe('Payments', () => {
       .flush(null);
     pendingGet(h.backend, '/dashboard/payments').flush([payment('Refunded')]);
     expect(h.snackOpen).toHaveBeenCalled();
+  });
+
+  it('shows the Refund button to staff but not to doctors', async () => {
+    for (const [role, shown] of [
+      ['ClinicStaff', true],
+      ['Doctor', false],
+    ] as const) {
+      TestBed.resetTestingModule();
+      const h = setupPage(Payments, { role });
+      h.fixture.detectChanges();
+      flushDoctors(h.backend);
+      pendingGet(h.backend, '/dashboard/payments').flush([payment('Paid')]);
+      await h.settle();
+      expect(h.el.querySelector('tbody .danger-outline') !== null).toBe(shown);
+    }
   });
 
   it('does not refund when the confirmation is dismissed', async () => {
@@ -98,7 +115,7 @@ describe('Reviews', () => {
   const review = (status = 'Visible') => ({
     id: 'r1',
     doctor: { id: 'd', name: 'Dr X' },
-    patient: { fullName: 'Sara' },
+    patientName: 'Sara',
     rating: 4,
     comment: 'Great',
     status,
@@ -115,8 +132,36 @@ describe('Reviews', () => {
     expect(h.el.textContent).toContain('Great');
   });
 
-  it('hides, publishes and replies', async () => {
+  it('shows the flat patientName the API sends', async () => {
     const h = setupPage(Reviews);
+    h.fixture.detectChanges();
+    flushDoctors(h.backend);
+    pendingGet(h.backend, '/dashboard/reviews').flush(page([review()]));
+    await h.settle();
+    expect(h.el.querySelector('.who')?.textContent).toContain('Sara');
+  });
+
+  it('shows Hide/Publish to staff and only Reply to doctors', async () => {
+    for (const [role, moderation] of [
+      ['ClinicStaff', true],
+      ['Doctor', false],
+    ] as const) {
+      TestBed.resetTestingModule();
+      const h = setupPage(Reviews, { role });
+      h.fixture.detectChanges();
+      flushDoctors(h.backend);
+      pendingGet(h.backend, '/dashboard/reviews').flush(
+        page([review('Published'), { ...review('Hidden'), id: 'r2' }]),
+      );
+      await h.settle();
+      const buttons = h.el.querySelectorAll('.actions button');
+      expect(buttons.length).toBe(moderation ? 4 : 2);
+      expect(h.el.textContent).toContain('Reply');
+    }
+  });
+
+  it('hides, publishes and replies', async () => {
+    const h = setupPage(Reviews, { role: 'ClinicStaff' });
     h.fixture.detectChanges();
     flushDoctors(h.backend);
     pendingGet(h.backend, '/dashboard/reviews').flush(page([review()]));
@@ -198,12 +243,9 @@ describe('Patients', () => {
   it('searches by name or phone', async () => {
     const h = setupPage(Patients);
     h.fixture.detectChanges();
-    pendingGet(h.backend, '/dashboard/patients').flush({
-      items: [{ id: 'u1', fullName: 'Hoda', phone: '+201000000009', appointmentsCount: 3 }],
-      totalCount: 1,
-      page: 1,
-      pageSize: 20,
-    });
+    pendingGet(h.backend, '/dashboard/patients').flush([
+      { id: 'u1', fullName: 'Hoda', phone: '+201000000009', appointmentsCount: 3 },
+    ]);
     await h.settle();
     expect(h.el.querySelector('tbody')?.textContent).toContain('Hoda');
     internals(h.fixture)['draft'].set('hod');
@@ -212,5 +254,47 @@ describe('Patients', () => {
     const req = pendingGet(h.backend, '/dashboard/patients');
     expect(req.request.params.get('search')).toBe('hod');
     req.flush([]);
+  });
+
+  const rows = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      id: `u${i}`,
+      fullName: `Patient ${i}`,
+      phone: '+201000000009',
+      appointmentsCount: 1,
+    }));
+
+  it('pages from the X-Total-Count header', async () => {
+    const h = setupPage(Patients);
+    h.fixture.detectChanges();
+    pendingGet(h.backend, '/dashboard/patients').flush(rows(20), {
+      headers: { 'X-Total-Count': '45' },
+    });
+    await h.settle();
+    expect(internals(h.fixture)['hasNext']()).toBe(true);
+    expect(h.el.querySelector('.pager')).not.toBeNull();
+    internals(h.fixture)['go'](3);
+    h.fixture.detectChanges();
+    const req = pendingGet(h.backend, '/dashboard/patients');
+    expect(req.request.params.get('page')).toBe('3');
+    req.flush(rows(5), { headers: { 'X-Total-Count': '45' } });
+    await h.settle();
+    expect(internals(h.fixture)['hasNext']()).toBe(false);
+  });
+
+  it('treats a full page as "maybe more" when the header is hidden', async () => {
+    const h = setupPage(Patients);
+    h.fixture.detectChanges();
+    pendingGet(h.backend, '/dashboard/patients').flush(rows(20));
+    await h.settle();
+    expect(internals(h.fixture)['hasNext']()).toBe(true);
+  });
+
+  it('has no next page when a short page arrives without the header', async () => {
+    const h = setupPage(Patients);
+    h.fixture.detectChanges();
+    pendingGet(h.backend, '/dashboard/patients').flush(rows(7));
+    await h.settle();
+    expect(internals(h.fixture)['hasNext']()).toBe(false);
   });
 });

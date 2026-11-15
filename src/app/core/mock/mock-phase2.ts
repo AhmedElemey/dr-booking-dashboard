@@ -26,7 +26,17 @@ import {
   MockRecord,
   holidayId,
 } from './mock-data-phase2';
-import { ApiError, Ctx, DOCTOR_ID, DOCTOR_USER_ID, Handler, STAFF_USER_ID } from './mock-core';
+import {
+  ApiError,
+  Ctx,
+  DOCTOR_ID,
+  DOCTOR_USER_ID,
+  Handler,
+  STAFF_USER_ID,
+  WithHeaders,
+  attachmentPath,
+  validationError,
+} from './mock-core';
 import type { MockBackend } from './mock-backend';
 import { CLINIC_ID, MOCK_TZ } from './mock-data';
 
@@ -310,13 +320,41 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
     return record;
   };
 
+  // ---- role rules and template validation (as the real API enforces them) ----
+
+  const staffOnly = (role: Ctx['role']) => {
+    if (role !== 'staff') throw new ApiError(403, 'FORBIDDEN');
+  };
+
+  const onGrid = (time: unknown) => {
+    const minutes = typeof time === 'string' ? minutesOfDay(time) : null;
+    return minutes !== null && minutes % 15 === 0;
+  };
+
+  const validateTemplate = (body: Record<string, unknown>) => {
+    const errors: Record<string, string[]> = {};
+    if (!body['name']) errors['name'] = ['name is required.'];
+    const slotMinutes = Number(body['slotMinutes']);
+    if (!Number.isInteger(slotMinutes) || slotMinutes < 15 || slotMinutes > 240 || slotMinutes % 15)
+      errors['slotMinutes'] = ['slotMinutes must be a multiple of 15 between 15 and 240.'];
+    const rules = Array.isArray(body['rules']) ? (body['rules'] as Record<string, unknown>[]) : [];
+    if (rules.length === 0) errors['rules'] = ['At least one rule is required.'];
+    rules.forEach((rule, i) => {
+      if (!onGrid(rule['start']))
+        errors[`rules[${i}].start`] = ['start must be HH:mm on a 15-minute boundary.'];
+      if (!onGrid(rule['end']))
+        errors[`rules[${i}].end`] = ['end must be HH:mm on a 15-minute boundary.'];
+    });
+    if (Object.keys(errors).length > 0) throw validationError(errors);
+  };
+
   // ---- coupons ----
 
   const couponBody = (body: Record<string, unknown>, existingId?: string): CouponRequest => {
     const code = String(body['code'] ?? '').toUpperCase();
     if (!/^[A-Z0-9-]{3,20}$/.test(code)) throw new ApiError(400, 'VALIDATION_FAILED');
     if (p2().coupons.some((c) => c.code === code && c.id !== existingId)) {
-      throw new ApiError(409, 'VALIDATION_FAILED');
+      throw validationError({ code: ['This coupon code is already in use.'] });
     }
     return { ...(body as unknown as CouponRequest), code };
   };
@@ -343,7 +381,7 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
         const date = requireDate(body['date']);
         if (!body['nameAr'] || !body['nameEn']) throw new ApiError(400, 'VALIDATION_FAILED');
         if (p2().holidays.some((h) => h.date === date))
-          throw new ApiError(400, 'VALIDATION_FAILED');
+          throw validationError({ date: ['This date is already a holiday.'] });
         const holiday: Holiday = {
           id: backend.id('hol'),
           clinicId: CLINIC_ID,
@@ -406,13 +444,14 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
     ],
 
     // ---- working-hours templates ----
+    // Doctors may list templates (to apply one); only staff change them.
     ['GET', /^\/dashboard\/working-hours-templates$/, () => p2().templates],
     [
       'POST',
       /^\/dashboard\/working-hours-templates$/,
-      ({ body }) => {
-        if (!body['name'] || !Array.isArray(body['rules']) || body['rules'].length === 0)
-          throw new ApiError(400, 'VALIDATION_FAILED');
+      ({ body, role }) => {
+        staffOnly(role);
+        validateTemplate(body);
         const template = {
           id: backend.id('wht'),
           clinicId: CLINIC_ID,
@@ -425,9 +464,11 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
     [
       'PUT',
       /^\/dashboard\/working-hours-templates\/([^/]+)$/,
-      ({ params, body }) => {
+      ({ params, body, role }) => {
+        staffOnly(role);
         const template = p2().templates.find((t) => t.id === params[0]);
         if (!template) throw new ApiError(404, 'NOT_FOUND');
+        validateTemplate({ ...template, ...body });
         Object.assign(template, body);
         return template;
       },
@@ -435,7 +476,8 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
     [
       'DELETE',
       /^\/dashboard\/working-hours-templates\/([^/]+)$/,
-      ({ params }) => {
+      ({ params, role }) => {
+        staffOnly(role);
         if (!p2().templates.some((t) => t.id === params[0])) throw new ApiError(404, 'NOT_FOUND');
         p2().templates = p2().templates.filter((t) => t.id !== params[0]);
         return null;
@@ -537,7 +579,7 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
           'waiting_list',
           `توفر موعد مع ${doctorName(entry.doctorId)} يوم ${entry.date}. احجز الآن.`,
         );
-        return { id: entry.id, status: entry.status, notifiedAt: entry.notifiedAt };
+        return { notified: true };
       },
     ],
 
@@ -597,13 +639,14 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
         };
         p2().payments.push(payment);
         Object.assign(apptExtra(a.id), { paymentStatus: 'Paid', paymentId: payment.id });
-        return payment;
+        return backend.dto(a);
       },
     ],
     [
       'POST',
       /^\/dashboard\/payments\/([^/]+)\/refund$/,
-      ({ params }) => {
+      ({ params, role }) => {
+        staffOnly(role);
         const payment = p2().payments.find((p) => p.id === params[0]);
         if (!payment) throw new ApiError(404, 'NOT_FOUND');
         if (payment.status !== 'Paid') throw new ApiError(409, 'PAYMENT_NOT_ALLOWED');
@@ -659,7 +702,10 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
         if (ids.some((id) => !p2().insuranceProviders.some((p) => p.id === id)))
           throw new ApiError(400, 'VALIDATION_FAILED');
         p2().doctorInsurance[doctor.id] = [...ids];
-        return backend.doctorView(doctor);
+        return ids.map((id) => {
+          const provider = p2().insuranceProviders.find((p) => p.id === id)!;
+          return { id, name: backend.lang === 'ar' ? provider.nameAr : provider.nameEn };
+        });
       },
     ],
     [
@@ -726,7 +772,10 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
             };
           })
           .sort((a, b) => (b.lastVisitAt ?? '').localeCompare(a.lastVisitAt ?? ''));
-        return backend.page(rows, ctx.query);
+        // The real API returns a bare array (20 per page) and the total in a header.
+        return new WithHeaders(backend.page(rows, ctx.query).items, {
+          'X-Total-Count': String(rows.length),
+        });
       },
     ],
     [
@@ -801,9 +850,24 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
       /^\/dashboard\/records\/([^/]+)\/attachment$/,
       ({ params, role }) => {
         const record = recordOrThrow(params[0], role);
-        record.attachmentUrl = '/branding/logo.svg';
+        record.attachmentUrl = attachmentPath(record.id);
         record.updatedAt = nowIso();
-        return record;
+        return { attachmentUrl: record.attachmentUrl };
+      },
+    ],
+    // Attachments are served through an authorized API path, not a public file URL.
+    [
+      'GET',
+      /^\/dashboard\/records\/([^/]+)\/attachment$/,
+      ({ params, role }) => {
+        const record = recordOrThrow(params[0], role);
+        if (!record.attachmentUrl) throw new ApiError(404, 'NOT_FOUND');
+        return new Blob(
+          [
+            '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="#0b6e6e"/></svg>',
+          ],
+          { type: 'image/svg+xml' },
+        );
       },
     ],
     [
@@ -846,7 +910,8 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
     [
       'POST',
       /^\/dashboard\/reviews\/([^/]+)\/(hide|publish)$/,
-      ({ params }) => {
+      ({ params, role }) => {
+        staffOnly(role);
         const review = p2().reviews.find((r) => r.id === params[0]);
         if (!review) throw new ApiError(404, 'NOT_FOUND');
         review.status = params[1] === 'hide' ? 'Hidden' : 'Published';

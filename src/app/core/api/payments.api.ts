@@ -4,6 +4,7 @@ import { Observable, map } from 'rxjs';
 
 import { apiUrl } from '../config/api-url';
 import { toPage, paramsOf } from './paging';
+import { DashboardAppointment } from './models';
 import { DashboardPayment, MaybePaged, PageResult, PaymentsQuery } from './phase2.models';
 
 /** onlinePayments: `/dashboard/payments`, mark-paid and refund. */
@@ -20,8 +21,8 @@ export class PaymentsApi {
   }
 
   /** Cash payment recorded at the desk. */
-  markPaid(appointmentId: string): Observable<DashboardPayment | null> {
-    return this.http.post<DashboardPayment | null>(
+  markPaid(appointmentId: string): Observable<DashboardAppointment> {
+    return this.http.post<DashboardAppointment>(
       apiUrl(`/dashboard/appointments/${appointmentId}/mark-paid`),
       {},
     );

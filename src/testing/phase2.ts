@@ -12,6 +12,8 @@ import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 
+import { Role } from '../app/core/api/models';
+import { AuthService } from '../app/core/auth/auth.service';
 import { API_ROOT } from '../app/core/config/api-url';
 import { FeaturesService } from '../app/core/config/features.service';
 import { provideFixedClock, provideTestTranslations } from './test-providers';
@@ -33,6 +35,8 @@ export interface SetupOptions {
   providers?: Provider[];
   /** Phase 2 switches to turn on before the component is created. */
   features?: string[];
+  /** Signed-in role (default: nobody). */
+  role?: Role;
 }
 
 /** Creates a component with HTTP, translations, a fixed clock and stubbed dialogs and toasts. */
@@ -62,6 +66,16 @@ export function setupPage<T>(component: Type<T>, options: SetupOptions = {}): Ha
       ...f,
       ...Object.fromEntries(options.features!.map((k) => [k, true])),
     }));
+  }
+  if (options.role) {
+    TestBed.inject(AuthService).user.set({
+      id: 'u-test',
+      phone: '+201000000001',
+      fullName: 'Test User',
+      role: options.role,
+      preferredLanguage: 'en',
+      clinicId: 'c1',
+    });
   }
   const backend = TestBed.inject(HttpTestingController);
   const fixture = TestBed.createComponent(component);

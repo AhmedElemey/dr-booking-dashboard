@@ -16,9 +16,10 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Observer, filter, map, of, switchMap } from 'rxjs';
+import { Observer, filter, map, switchMap } from 'rxjs';
 
 import { AppointmentsApi } from '../../core/api/appointments.api';
+import { AuthService } from '../../core/auth/auth.service';
 import { DoctorsApi } from '../../core/api/doctors.api';
 import { InsuranceApi } from '../../core/api/insurance.api';
 import { DashboardAppointment, PaymentStatus, Slot } from '../../core/api/models';
@@ -35,6 +36,15 @@ import { Drawer } from '../../shared/drawer';
 import { SlotPicker } from '../../shared/slot-picker';
 import { StatusChip } from '../../shared/status-chip';
 import { availableActions } from './appointment-actions';
+
+/** Only https links are opened (the host link comes from the API; defence in depth). */
+export function isHttpsUrl(value: string | null | undefined): boolean {
+  try {
+    return !!value && new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
 
 type Mode = 'view' | 'cancel' | 'reschedule';
 
@@ -68,6 +78,7 @@ export class AppointmentDrawer implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly paymentsApi = inject(PaymentsApi);
   private readonly insuranceApi = inject(InsuranceApi);
+  private readonly auth = inject(AuthService);
   protected readonly features = inject(FeaturesService);
   protected readonly clinicTime = inject(ClinicTime);
 
@@ -108,7 +119,10 @@ export class AppointmentDrawer implements OnInit {
     );
   });
 
-  protected readonly canRefund = computed(() => this.appointment()?.paymentStatus === 'Paid');
+  /** Refunds are for clinic staff only: the API answers 403 to a doctor. */
+  protected readonly canRefund = computed(
+    () => this.auth.role() === 'ClinicStaff' && this.appointment()?.paymentStatus === 'Paid',
+  );
 
   protected readonly showVideoJoin = computed(() => {
     const a = this.appointment();
@@ -238,7 +252,8 @@ export class AppointmentDrawer implements OnInit {
     this.api.video(appointment.id).subscribe({
       next: (link) => {
         this.busy.set(false);
-        window.open(link.joinUrl, '_blank', 'noopener');
+        if (isHttpsUrl(link.joinUrl)) window.open(link.joinUrl, '_blank', 'noopener');
+        else this.toast.failure('drawer.videoLinkInvalid');
       },
       error: () => this.busy.set(false),
     });
@@ -248,7 +263,19 @@ export class AppointmentDrawer implements OnInit {
     const appointment = this.appointment();
     if (!appointment) return;
     this.busy.set(true);
-    this.paymentsApi.markPaid(appointment.id).subscribe(this.afterChange('drawer.paidMarked'));
+    // The API answers with the updated appointment, so the drawer can use it directly.
+    this.paymentsApi.markPaid(appointment.id).subscribe({
+      next: (updated) => {
+        this.busy.set(false);
+        this.toast.success('drawer.paidMarked');
+        this.appointment.set(updated);
+        this.changed.emit();
+      },
+      error: () => {
+        this.busy.set(false);
+        this.refetch();
+      },
+    });
   }
 
   protected refund(): void {
@@ -285,12 +312,14 @@ export class AppointmentDrawer implements OnInit {
       });
   }
 
-  /** The payment id is on the appointment when the API sends it; otherwise look it up. */
+  /**
+   * The API's appointment payload has no payment id, so look the Paid payment up. `from`/`to`
+   * filter on the payment's creation date, which is normally close to the visit.
+   */
   private paymentIdOf(a: DashboardAppointment) {
-    if (a.paymentId) return of(a.paymentId);
     const day = this.clinicTime.dateKey(a.startsAt, a.timezone);
     return this.paymentsApi
-      .list({ from: addDays(day, -60), to: addDays(day, 60), status: 'Paid' })
+      .list({ from: addDays(day, -365), to: addDays(day, 60), status: 'Paid' })
       .pipe(map((page) => page.items.find((p) => p.appointmentId === a.id)?.id ?? null));
   }
 

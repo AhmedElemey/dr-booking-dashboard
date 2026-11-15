@@ -13,14 +13,18 @@ export const WEEKDAY_OPTIONS: { name: DayName; key: string }[] = [
   { name: 'Friday', key: 'fri' },
 ];
 
-export const SLOT_LENGTHS = [15, 20, 30, 45, 60, 90, 120];
+/** The API only accepts slot lengths and times on this grid. */
+export const GRID_MINUTES = 15;
 
-export type RuleIssue = 'none' | 'times' | 'overlap' | 'tooShort';
+export const SLOT_LENGTHS = [15, 30, 45, 60, 90, 120];
+
+export type RuleIssue = 'none' | 'times' | 'grid' | 'overlap' | 'tooShort';
 
 /** Problems found in a weekly rule set; `none` means no rule at all. Keys: `workingHours.issues.*`. */
 export function validateRules(rules: TemplateRule[], slotMinutes: number): RuleIssue[] {
   const issues = new Set<RuleIssue>();
   if (rules.length === 0) issues.add('none');
+  if (!(slotMinutes >= GRID_MINUTES) || slotMinutes % GRID_MINUTES !== 0) issues.add('grid');
   const byDay = new Map<DayName, [number, number][]>();
   for (const rule of rules) {
     const start = minutesOfDay(rule.start);
@@ -29,6 +33,7 @@ export function validateRules(rules: TemplateRule[], slotMinutes: number): RuleI
       issues.add('times');
       continue;
     }
+    if (start % GRID_MINUTES !== 0 || end % GRID_MINUTES !== 0) issues.add('grid');
     if (end - start < slotMinutes) issues.add('tooShort');
     byDay.set(rule.dayOfWeek, [...(byDay.get(rule.dayOfWeek) ?? []), [start, end]]);
   }

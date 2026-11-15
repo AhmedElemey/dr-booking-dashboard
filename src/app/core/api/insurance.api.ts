@@ -3,7 +3,6 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { apiUrl } from '../config/api-url';
-import { Doctor } from './models';
 import { InsuranceProvider, InsuranceProviderRequest } from './phase2.models';
 
 /** insurance: providers CRUD, per-doctor accepted providers. */
@@ -28,8 +27,11 @@ export class InsuranceApi {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
-  setDoctorProviders(doctorId: string, providerIds: string[]): Observable<Doctor | null> {
-    return this.http.put<Doctor | null>(
+  setDoctorProviders(
+    doctorId: string,
+    providerIds: string[],
+  ): Observable<{ id: string; name: string }[]> {
+    return this.http.put<{ id: string; name: string }[]>(
       apiUrl(`/dashboard/doctors/${doctorId}/insurance-providers`),
       { providerIds },
     );

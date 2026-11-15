@@ -1,4 +1,5 @@
 import { internals, pendingGet, setupPage } from '../../../testing/phase2';
+import { Role } from '../../core/api/models';
 import { AppointmentDrawer } from './appointment-drawer';
 
 const appointment = (extra: object = {}) => ({
@@ -35,8 +36,8 @@ const appointment = (extra: object = {}) => ({
   ...extra,
 });
 
-async function open(features: string[], extra: object = {}) {
-  const h = setupPage(AppointmentDrawer, { features });
+async function open(features: string[], extra: object = {}, role: Role = 'ClinicStaff') {
+  const h = setupPage(AppointmentDrawer, { features, role });
   h.fixture.componentRef.setInput('appointmentId', 'a1');
   h.fixture.detectChanges();
   pendingGet(h.backend, '/dashboard/appointments/a1').flush(appointment(extra));
@@ -85,32 +86,49 @@ describe('AppointmentDrawer phase 2 blocks', () => {
     windowOpen.mockRestore();
   });
 
-  it('marks a cash payment and refetches', async () => {
+  it('marks a cash payment and uses the returned appointment', async () => {
     const h = await open(['onlinePayments']);
     expect(internals(h.fixture)['canMarkPaid']()).toBe(true);
     internals(h.fixture)['markPaid']();
     h.backend
       .expectOne((r) => r.method === 'POST' && r.url.endsWith('/appointments/a1/mark-paid'))
-      .flush(null);
-    pendingGet(h.backend, '/dashboard/appointments/a1').flush(
-      appointment({ paymentStatus: 'Paid' }),
-    );
+      .flush(appointment({ paymentStatus: 'Paid' }));
+    // The response is the updated appointment: no refetch is needed.
+    h.backend.expectNone((r) => r.method === 'GET');
+    expect(internals(h.fixture)['appointment']().paymentStatus).toBe('Paid');
     expect(internals(h.fixture)['canRefund']()).toBe(true);
     expect(internals(h.fixture)['canMarkPaid']()).toBe(false);
   });
 
-  it('refunds using the payment id from the appointment', async () => {
-    const h = await open(['onlinePayments'], { paymentStatus: 'Paid', paymentId: 'pay9' });
-    internals(h.fixture)['refund']();
-    h.backend
-      .expectOne((r) => r.method === 'POST' && r.url.endsWith('/payments/pay9/refund'))
-      .flush(null);
-    pendingGet(h.backend, '/dashboard/appointments/a1').flush(
-      appointment({ paymentStatus: 'Refunded' }),
-    );
+  it('shows Refund to clinic staff', async () => {
+    const h = await open(['onlinePayments'], { paymentStatus: 'Paid' });
+    expect(h.el.querySelector('.payment-row')?.textContent).toContain('Refund');
   });
 
-  it('finds the payment through the list when the id is missing', async () => {
+  it('hides Refund from doctors but keeps Mark paid', async () => {
+    const paid = await open(['onlinePayments'], { paymentStatus: 'Paid' }, 'Doctor');
+    expect(internals(paid.fixture)['canRefund']()).toBe(false);
+    expect(paid.el.querySelector('.payment-row')?.textContent).not.toContain('Refund');
+  });
+
+  it('lets doctors mark a payment as paid (the API allows it)', async () => {
+    const h = await open(['onlinePayments'], { paymentStatus: 'Unpaid' }, 'Doctor');
+    expect(internals(h.fixture)['canMarkPaid']()).toBe(true);
+  });
+
+  it('does not open a video link that is not https', async () => {
+    const windowOpen = vi.spyOn(window, 'open').mockReturnValue(null);
+    const h = await open(['videoConsultation']);
+    internals(h.fixture)['joinVideo']();
+    h.backend
+      .expectOne((r) => r.url.endsWith('/dashboard/appointments/a1/video'))
+      .flush({ joinUrl: 'javascript:alert(1)', opensAt: 'a', closesAt: 'b' });
+    expect(windowOpen).not.toHaveBeenCalled();
+    expect(h.snackOpen).toHaveBeenCalled();
+    windowOpen.mockRestore();
+  });
+
+  it('finds the Paid payment through the list, then refunds it', async () => {
     const h = await open(['onlinePayments'], { paymentStatus: 'Paid' });
     internals(h.fixture)['refund']();
     const list = pendingGet(h.backend, '/dashboard/payments');

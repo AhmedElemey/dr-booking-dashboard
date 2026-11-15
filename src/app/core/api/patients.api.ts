@@ -2,10 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
 import { apiUrl } from '../config/api-url';
-import { paramsOf, toPage } from './paging';
+import { paramsOf, toPageFromHeader } from './paging';
 import {
-  MaybePaged,
   MedicalInfo,
   PageResult,
   PatientDetail,
@@ -21,10 +21,11 @@ export class PatientsApi {
 
   list(search: string, page = 1): Observable<PageResult<PatientRow>> {
     return this.http
-      .get<MaybePaged<PatientRow>>(apiUrl('/dashboard/patients'), {
+      .get<PatientRow[]>(apiUrl('/dashboard/patients'), {
         params: paramsOf({ search: search.trim(), page }),
+        observe: 'response',
       })
-      .pipe(map((raw) => toPage(raw, page)));
+      .pipe(map((res) => toPageFromHeader(res.body, res.headers.get('X-Total-Count'), page)));
   }
 
   get(userId: string, familyMemberId?: string | null): Observable<PatientDetail> {
@@ -56,9 +57,21 @@ export class PatientsApi {
     return this.http.delete<void>(apiUrl(`/dashboard/records/${id}`));
   }
 
-  uploadAttachment(id: string, file: File): Observable<RecordEntry> {
+  uploadAttachment(id: string, file: File): Observable<{ attachmentUrl: string }> {
     const form = new FormData();
     form.append('file', file);
-    return this.http.put<RecordEntry>(apiUrl(`/dashboard/records/${id}/attachment`), form);
+    return this.http.put<{ attachmentUrl: string }>(
+      apiUrl(`/dashboard/records/${id}/attachment`),
+      form,
+    );
+  }
+
+  /**
+   * Fetches a record attachment as a blob. The URL points at an authorized API path, so it
+   * must be requested with the bearer token (the auth interceptor adds it) instead of linked.
+   */
+  fetchAttachment(url: string): Observable<Blob> {
+    const target = /^https?:\/\//i.test(url) ? url : `${environment.apiBaseUrl}${url}`;
+    return this.http.get(target, { responseType: 'blob' });
   }
 }

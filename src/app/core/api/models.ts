@@ -74,8 +74,6 @@ export interface DashboardAppointment {
   discountEgp?: number | null;
   totalEgp?: number | null;
   paymentStatus?: PaymentStatus;
-  /** Assumed extra: lets the drawer refund without a lookup. */
-  paymentId?: string | null;
   /** insurance. */
   insurance?: AppointmentInsurance | null;
   /** reviews. */

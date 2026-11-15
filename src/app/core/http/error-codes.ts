@@ -56,6 +56,16 @@ export function errorCode(error: unknown): string {
   return 'UNKNOWN';
 }
 
+/** Field messages of a VALIDATION_FAILED problem (`errors{field: [message]}`), flattened. */
+export function validationMessages(error: unknown, limit = 3): string[] {
+  const errors = problemOf(error)?.errors;
+  if (!errors || typeof errors !== 'object') return [];
+  return Object.values(errors)
+    .flatMap((list) => (Array.isArray(list) ? list : [list]))
+    .filter((m): m is string => typeof m === 'string' && m.trim() !== '')
+    .slice(0, limit);
+}
+
 /** Translation key for an error code, falling back to a generic message. */
 export function errorMessageKey(code: string): string {
   const known = (KNOWN_ERROR_CODES as readonly string[]).includes(code);

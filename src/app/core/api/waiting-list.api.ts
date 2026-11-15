@@ -17,8 +17,8 @@ export class WaitingListApi {
     });
   }
 
-  notify(id: string): Observable<WaitingListEntry | null> {
-    return this.http.post<WaitingListEntry | null>(
+  notify(id: string): Observable<{ notified: boolean }> {
+    return this.http.post<{ notified: boolean }>(
       apiUrl(`/dashboard/waiting-list/${id}/notify`),
       {},
     );

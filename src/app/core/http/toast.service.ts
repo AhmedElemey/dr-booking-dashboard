@@ -3,7 +3,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateService } from '@ngx-translate/core';
 
 import { FeaturesService } from '../config/features.service';
-import { errorCode, errorMessageKey, problemOf } from './error-codes';
+import {
+  couponReasonKey,
+  errorCode,
+  errorMessageKey,
+  problemOf,
+  validationMessages,
+} from './error-codes';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
@@ -35,7 +41,14 @@ export class ToastService {
       );
       return;
     }
-    this.open(this.translate.instant(errorMessageKey(code)), 'toast-error');
+    const key = (code === 'COUPON_INVALID' && couponReasonKey(error)) || errorMessageKey(code);
+    let message = this.translate.instant(key);
+    if (code === 'VALIDATION_FAILED') {
+      // The API names the offending field (e.g. "This date is already a holiday.").
+      const details = validationMessages(error);
+      if (details.length > 0) message = `${message} ${details.join(' ')}`;
+    }
+    this.open(message, 'toast-error');
   }
 
   private open(message: string, panelClass: string): void {

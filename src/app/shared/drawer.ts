@@ -51,7 +51,8 @@ import { TranslatePipe } from '@ngx-translate/core';
       inline-size: min(460px, 100%);
       display: flex;
       flex-direction: column;
-      background: var(--mat-sys-surface);
+      /* The Material surface token resolves to an invalid light-dark() here; Canvas follows color-scheme. */
+      background: Canvas;
       box-shadow: var(--mat-sys-level3);
       animation: slide-in 180ms ease-out;
     }

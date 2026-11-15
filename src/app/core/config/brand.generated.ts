@@ -23,6 +23,19 @@ export const BRAND = {
     "pushReminders": true,
     "smsNotifications": false,
     "englishLanguage": true,
-    "multiBranch": true
+    "multiBranch": true,
+    "videoConsultation": false,
+    "waitingList": false,
+    "familyAccounts": false,
+    "whatsappReminders": false,
+    "onlinePayments": false,
+    "insurance": false,
+    "holidayCalendar": false,
+    "workingHoursTemplates": false,
+    "patientRecords": false,
+    "reviews": false,
+    "promotions": false,
+    "recallCampaigns": false,
+    "reports": false
   }
 } as const;

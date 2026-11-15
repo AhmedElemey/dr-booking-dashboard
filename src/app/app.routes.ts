@@ -2,10 +2,28 @@ import { Routes } from '@angular/router';
 
 import { Role } from './core/api/models';
 import { authGuard, guestGuard, homeRedirectGuard, roleGuard } from './core/auth/guards';
+import { featureGuard } from './core/config/feature.guard';
+import { FeatureKey } from './core/config/brand';
 import { Shell } from './core/layout/shell';
 
 const STAFF: Role[] = ['Doctor', 'ClinicStaff'];
 const staffOnly = { canActivate: [roleGuard], data: { roles: STAFF } };
+
+/** Only clinic staff (not doctors) and only while `feature` is switched on. */
+const clinicFeature = (feature: FeatureKey) => ({
+  canActivate: [roleGuard, featureGuard(feature)],
+  data: { roles: ['ClinicStaff'] satisfies Role[] },
+});
+/** Staff and doctors (a doctor sees only their own data) while `feature` is switched on. */
+const staffFeature = (feature: FeatureKey) => ({
+  canActivate: [roleGuard, featureGuard(feature)],
+  data: { roles: STAFF },
+});
+/** Clinic staff and platform admins. */
+const adminFeature = (feature: FeatureKey) => ({
+  canActivate: [roleGuard, featureGuard(feature)],
+  data: { roles: ['ClinicStaff', 'PlatformAdmin'] satisfies Role[] },
+});
 
 export const routes: Routes = [
   {
@@ -44,6 +62,70 @@ export const routes: Routes = [
         path: 'slots',
         ...staffOnly,
         loadComponent: () => import('./features/slots/slot-calendar').then((m) => m.SlotCalendar),
+      },
+      {
+        path: 'holidays',
+        ...clinicFeature('holidayCalendar'),
+        loadComponent: () => import('./features/holidays/holidays').then((m) => m.Holidays),
+      },
+      {
+        path: 'working-hours',
+        ...clinicFeature('workingHoursTemplates'),
+        loadComponent: () =>
+          import('./features/working-hours/working-hours').then((m) => m.WorkingHours),
+      },
+      {
+        path: 'waiting-list',
+        ...staffFeature('waitingList'),
+        loadComponent: () =>
+          import('./features/waiting-list/waiting-list').then((m) => m.WaitingList),
+      },
+      {
+        path: 'payments',
+        ...staffFeature('onlinePayments'),
+        loadComponent: () => import('./features/payments/payments').then((m) => m.Payments),
+      },
+      {
+        path: 'insurance',
+        ...adminFeature('insurance'),
+        loadComponent: () =>
+          import('./features/insurance/insurance-providers').then((m) => m.InsuranceProviders),
+      },
+      {
+        path: 'patients',
+        ...staffFeature('patientRecords'),
+        loadComponent: () => import('./features/patients/patients').then((m) => m.Patients),
+      },
+      {
+        path: 'patients/:id',
+        ...staffFeature('patientRecords'),
+        loadComponent: () =>
+          import('./features/patients/patient-record').then((m) => m.PatientRecord),
+      },
+      {
+        path: 'reviews',
+        ...staffFeature('reviews'),
+        loadComponent: () => import('./features/reviews/reviews').then((m) => m.Reviews),
+      },
+      {
+        path: 'coupons',
+        ...clinicFeature('promotions'),
+        loadComponent: () => import('./features/coupons/coupons').then((m) => m.Coupons),
+      },
+      {
+        path: 'recall',
+        ...clinicFeature('recallCampaigns'),
+        loadComponent: () => import('./features/recall/recall').then((m) => m.Recall),
+      },
+      {
+        path: 'reports',
+        ...staffFeature('reports'),
+        loadComponent: () => import('./features/reports/reports').then((m) => m.Reports),
+      },
+      {
+        path: 'messages',
+        ...adminFeature('whatsappReminders'),
+        loadComponent: () => import('./features/messages/messages').then((m) => m.Messages),
       },
       {
         path: 'clinic',

@@ -89,6 +89,40 @@
           </mat-form-field>
         </div>
 
+        @if (features.isOn('videoConsultation')) {
+          <div class="feature-row">
+            <mat-slide-toggle formControlName="offersVideo">
+              {{ 'doctors.offersVideo' | translate }}
+            </mat-slide-toggle>
+            <p class="muted hint">{{ 'doctors.offersVideoHint' | translate }}</p>
+          </div>
+        }
+
+        @if (features.isOn('insurance')) {
+          <div class="feature-row">
+            @if (canEditInsurance()) {
+              <mat-form-field appearance="outline" class="wide">
+                <mat-label>{{ 'doctors.insurance' | translate }}</mat-label>
+                <mat-select
+                  multiple
+                  [value]="acceptedIds()"
+                  (selectionChange)="acceptedIds.set($event.value)"
+                >
+                  @for (p of providers(); track p.id) {
+                    <mat-option [value]="p.id">{{ providerName(p) }}</mat-option>
+                  }
+                </mat-select>
+                <mat-hint>{{ 'doctors.insuranceHint' | translate }}</mat-hint>
+              </mat-form-field>
+            } @else {
+              <p class="muted">
+                {{ 'doctors.insurance' | translate }}:
+                {{ (doctor()?.insuranceProviders ?? []).map((p) => p.name).join('، ') || '-' }}
+              </p>
+            }
+          </div>
+        }
+
         <div class="row">
           <button mat-flat-button type="submit" [disabled]="saving()">
             {{ 'common.save' | translate }}

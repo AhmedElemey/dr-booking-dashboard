@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatButton } from '@angular/material/button';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -10,7 +11,14 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { AppointmentsApi } from '../../core/api/appointments.api';
 import { DoctorsApi } from '../../core/api/doctors.api';
-import { DashboardAppointment, Doctor, Service, Slot } from '../../core/api/models';
+import {
+  AppointmentMode,
+  DashboardAppointment,
+  Doctor,
+  Service,
+  Slot,
+} from '../../core/api/models';
+import { FeaturesService } from '../../core/config/features.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
 import { addDays } from '../../core/time/clinic-time';
@@ -35,6 +43,8 @@ const LOOKAHEAD_DAYS = 14;
     MatSelect,
     MatOption,
     MatIcon,
+    MatButtonToggleGroup,
+    MatButtonToggle,
     TranslatePipe,
     SlotPicker,
   ],
@@ -47,6 +57,7 @@ export class NewAppointment {
   private readonly appointmentsApi = inject(AppointmentsApi);
   private readonly doctorsApi = inject(DoctorsApi);
   private readonly languages = inject(LanguageService);
+  protected readonly features = inject(FeaturesService);
   protected readonly clinicTime = inject(ClinicTime);
 
   protected readonly doctors = signal<Doctor[]>([]);
@@ -64,6 +75,7 @@ export class NewAppointment {
     patientPhone: ['', [Validators.required, egyptPhoneValidator]],
     patientName: ['', [Validators.required, Validators.maxLength(120)]],
     patientNote: ['', Validators.maxLength(500)],
+    mode: ['InPerson' as AppointmentMode],
   });
 
   constructor() {
@@ -71,6 +83,15 @@ export class NewAppointment {
       this.doctors.set(doctors);
       if (doctors.length === 1) this.chooseDoctor(doctors[0].id);
     });
+  }
+
+  /** Video is offered only when the feature is on and the chosen doctor has it enabled. */
+  protected offersVideo(): boolean {
+    const id = this.form.controls.doctorId.value;
+    return (
+      this.features.isOn('videoConsultation') &&
+      this.doctors().some((d) => d.id === id && d.offersVideo === true)
+    );
   }
 
   protected doctorName(doctor: Doctor): string {
@@ -84,6 +105,7 @@ export class NewAppointment {
   protected chooseDoctor(doctorId: string): void {
     this.form.controls.doctorId.setValue(doctorId);
     this.form.controls.serviceId.setValue('');
+    this.form.controls.mode.setValue('InPerson');
     this.selectedSlot.set(null);
     this.slotMissing.set(false);
     this.services.set([]);
@@ -126,6 +148,8 @@ export class NewAppointment {
         patientPhone: normalizeEgyptPhone(value.patientPhone)!,
         patientName: value.patientName.trim(),
         patientNote: value.patientNote.trim() || null,
+        // Only sent when the doctor offers video, so a switched-off feature never sees the field.
+        ...(this.offersVideo() ? { mode: value.mode } : {}),
       })
       .subscribe({
         next: (appointment) => {

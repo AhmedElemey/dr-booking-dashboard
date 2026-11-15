@@ -16,11 +16,17 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Observer, filter, switchMap } from 'rxjs';
+import { Observer, filter, map, switchMap } from 'rxjs';
 
 import { AppointmentsApi } from '../../core/api/appointments.api';
+import { AuthService } from '../../core/auth/auth.service';
 import { DoctorsApi } from '../../core/api/doctors.api';
-import { DashboardAppointment, Slot } from '../../core/api/models';
+import { InsuranceApi } from '../../core/api/insurance.api';
+import { DashboardAppointment, PaymentStatus, Slot } from '../../core/api/models';
+import { PaymentsApi } from '../../core/api/payments.api';
+import { FeaturesService } from '../../core/config/features.service';
+import { egp } from '../../core/util/format';
+import { Rating } from '../../shared/rating';
 import { ToastService } from '../../core/http/toast.service';
 import { Clock } from '../../core/time/clock';
 import { addDays } from '../../core/time/clinic-time';
@@ -30,6 +36,15 @@ import { Drawer } from '../../shared/drawer';
 import { SlotPicker } from '../../shared/slot-picker';
 import { StatusChip } from '../../shared/status-chip';
 import { availableActions } from './appointment-actions';
+
+/** Only https links are opened (the host link comes from the API; defence in depth). */
+export function isHttpsUrl(value: string | null | undefined): boolean {
+  try {
+    return !!value && new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
 
 type Mode = 'view' | 'cancel' | 'reschedule';
 
@@ -48,6 +63,7 @@ type Mode = 'view' | 'cancel' | 'reschedule';
     Drawer,
     SlotPicker,
     StatusChip,
+    Rating,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './appointment-drawer.html',
@@ -60,6 +76,10 @@ export class AppointmentDrawer implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly clock = inject(Clock);
   private readonly translate = inject(TranslateService);
+  private readonly paymentsApi = inject(PaymentsApi);
+  private readonly insuranceApi = inject(InsuranceApi);
+  private readonly auth = inject(AuthService);
+  protected readonly features = inject(FeaturesService);
   protected readonly clinicTime = inject(ClinicTime);
 
   readonly appointmentId = input.required<string>();
@@ -72,6 +92,7 @@ export class AppointmentDrawer implements OnInit {
   protected readonly busy = signal(false);
   protected readonly mode = signal<Mode>('view');
   protected cancelReason = '';
+  protected insuranceNote = '';
 
   protected readonly openSlots = signal<Slot[]>([]);
   protected readonly targetSlot = signal<Slot | null>(null);
@@ -85,6 +106,28 @@ export class AppointmentDrawer implements OnInit {
     return !!actions && Object.values(actions).some(Boolean);
   });
   protected readonly heading = computed(() => this.translate.instant('drawer.title'));
+
+  /** Whether a "Mark paid" (cash) action applies. */
+  protected readonly canMarkPaid = computed(() => {
+    const a = this.appointment();
+    const status: PaymentStatus = a?.paymentStatus ?? 'Unpaid';
+    return (
+      !!a &&
+      a.status !== 'Cancelled' &&
+      (status === 'Unpaid' || status === 'Pending') &&
+      (a.totalEgp ?? 0) > 0
+    );
+  });
+
+  /** Refunds are for clinic staff only: the API answers 403 to a doctor. */
+  protected readonly canRefund = computed(
+    () => this.auth.role() === 'ClinicStaff' && this.appointment()?.paymentStatus === 'Paid',
+  );
+
+  protected readonly showVideoJoin = computed(() => {
+    const a = this.appointment();
+    return !!a && a.mode === 'Video' && a.status === 'Confirmed';
+  });
 
   ngOnInit(): void {
     this.load();
@@ -193,5 +236,103 @@ export class AppointmentDrawer implements OnInit {
       this.appointment.set(fresh);
       this.changed.emit();
     });
+  }
+
+  // ---- phase 2 actions ----
+
+  protected money(value: number | null | undefined): string {
+    return egp(value);
+  }
+
+  /** videoConsultation: opens the host link; the API refuses (VIDEO_NOT_OPEN) outside the window. */
+  protected joinVideo(): void {
+    const appointment = this.appointment();
+    if (!appointment) return;
+    this.busy.set(true);
+    this.api.video(appointment.id).subscribe({
+      next: (link) => {
+        this.busy.set(false);
+        if (isHttpsUrl(link.joinUrl)) window.open(link.joinUrl, '_blank', 'noopener');
+        else this.toast.failure('drawer.videoLinkInvalid');
+      },
+      error: () => this.busy.set(false),
+    });
+  }
+
+  protected markPaid(): void {
+    const appointment = this.appointment();
+    if (!appointment) return;
+    this.busy.set(true);
+    // The API answers with the updated appointment, so the drawer can use it directly.
+    this.paymentsApi.markPaid(appointment.id).subscribe({
+      next: (updated) => {
+        this.busy.set(false);
+        this.toast.success('drawer.paidMarked');
+        this.appointment.set(updated);
+        this.changed.emit();
+      },
+      error: () => {
+        this.busy.set(false);
+        this.refetch();
+      },
+    });
+  }
+
+  protected refund(): void {
+    const appointment = this.appointment();
+    if (!appointment) return;
+    const data: ConfirmDialogData = {
+      titleKey: 'payments.refundTitle',
+      messageKey: 'drawer.refundMessage',
+      messageParams: { amount: egp(appointment.totalEgp) },
+      confirmKey: 'payments.refund',
+      destructive: true,
+    };
+    this.dialog
+      .open(ConfirmDialog, { data })
+      .afterClosed()
+      .pipe(
+        filter((ok) => ok === true),
+        switchMap(() => {
+          this.busy.set(true);
+          return this.paymentIdOf(appointment);
+        }),
+        switchMap((paymentId) => {
+          if (!paymentId) throw new Error('payment-not-found');
+          return this.paymentsApi.refund(paymentId);
+        }),
+      )
+      .subscribe({
+        ...this.afterChange('drawer.refunded'),
+        error: (e) => {
+          this.busy.set(false);
+          if (e instanceof Error) this.toast.failure('drawer.paymentNotFound');
+          this.refetch();
+        },
+      });
+  }
+
+  /**
+   * The API's appointment payload has no payment id, so look the Paid payment up. `from`/`to`
+   * filter on the payment's creation date, which is normally close to the visit.
+   */
+  private paymentIdOf(a: DashboardAppointment) {
+    const day = this.clinicTime.dateKey(a.startsAt, a.timezone);
+    return this.paymentsApi
+      .list({ from: addDays(day, -365), to: addDays(day, 60), status: 'Paid' })
+      .pipe(map((page) => page.items.find((p) => p.appointmentId === a.id)?.id ?? null));
+  }
+
+  protected decideInsurance(status: 'Approved' | 'Rejected'): void {
+    const appointment = this.appointment();
+    if (!appointment) return;
+    this.busy.set(true);
+    this.insuranceApi
+      .decide(appointment.id, status, this.insuranceNote.trim() || null)
+      .subscribe(
+        this.afterChange(
+          status === 'Approved' ? 'drawer.insuranceApproved' : 'drawer.insuranceRejected',
+        ),
+      );
   }
 }

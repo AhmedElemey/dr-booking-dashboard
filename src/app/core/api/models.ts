@@ -20,6 +20,8 @@ export interface ProblemDetails {
   code?: string;
   /** With code FEATURE_DISABLED: the switched-off feature key. */
   feature?: string;
+  /** With code COUPON_INVALID: why the coupon was refused. */
+  reason?: string;
   detail?: string;
   traceId?: string;
   errors?: Record<string, string[]>;
@@ -61,6 +63,39 @@ export interface DashboardAppointment {
   patientNote?: string | null;
   cancelledBy?: 'Patient' | 'Clinic' | null;
   cancelReason?: string | null;
+
+  // ---- phase 2 (always present from the API; only meaningful when the feature is on) ----
+  /** familyAccounts: set when the visit is for a family member. `patient` is then the booker. */
+  familyMember?: FamilyMemberRef | null;
+  /** videoConsultation. */
+  mode?: AppointmentMode;
+  /** onlinePayments. */
+  priceEgp?: number | null;
+  discountEgp?: number | null;
+  totalEgp?: number | null;
+  paymentStatus?: PaymentStatus;
+  /** insurance. */
+  insurance?: AppointmentInsurance | null;
+  /** reviews. */
+  review?: { rating: number; comment?: string | null } | null;
+}
+
+export type AppointmentMode = 'InPerson' | 'Video';
+export type PaymentStatus = 'Unpaid' | 'Pending' | 'Paid' | 'Refunded';
+export type FamilyRelation = 'Child' | 'Spouse' | 'Parent' | 'Sibling' | 'Other';
+export type InsuranceStatus = 'Pending' | 'Approved' | 'Rejected';
+
+export interface FamilyMemberRef {
+  id: string;
+  fullName: string;
+  relation: FamilyRelation;
+}
+
+export interface AppointmentInsurance {
+  provider: { id: string; name: string };
+  memberNumber: string;
+  status: InsuranceStatus;
+  note?: string | null;
 }
 
 export interface AppointmentQuery {
@@ -78,6 +113,8 @@ export interface CreateAppointmentRequest {
   patientPhone: string;
   patientName: string;
   patientNote?: string | null;
+  /** videoConsultation: omitted (in person) unless the doctor offers video. */
+  mode?: AppointmentMode;
 }
 
 // ---- Doctors, services, slots --------------------------------------------
@@ -95,9 +132,16 @@ export interface Doctor {
   yearsExperience?: number | null;
   consultationFeeEgp?: number | null;
   isPublished: boolean;
+  /** videoConsultation. */
+  offersVideo?: boolean;
+  /** insurance: the providers this doctor accepts. */
+  insuranceProviders?: { id: string; name: string }[];
 }
 
-export type UpdateDoctorRequest = Omit<Doctor, 'id' | 'clinicId' | 'slug' | 'photoUrl'>;
+export type UpdateDoctorRequest = Omit<
+  Doctor,
+  'id' | 'clinicId' | 'slug' | 'photoUrl' | 'insuranceProviders'
+>;
 
 /** Localized by the `Accept-Language` header (the API returns one `name`). */
 export interface Specialty {
@@ -159,6 +203,12 @@ export interface BulkSlotsResult {
   created: number;
   skipped: number;
   skippedSlots?: { startsAt: string; endsAt: string; local: string; reason: string }[] | null;
+}
+
+export interface ApplyTemplateRequest {
+  templateId: string;
+  fromDate: string;
+  toDate: string;
 }
 
 export interface DeleteSlotsResult {

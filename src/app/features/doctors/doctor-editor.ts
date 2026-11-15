@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -10,10 +18,14 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { filter, switchMap } from 'rxjs';
+import { filter, of, switchMap } from 'rxjs';
 
 import { DoctorsApi } from '../../core/api/doctors.api';
+import { InsuranceApi } from '../../core/api/insurance.api';
 import { Doctor, Service, Specialty } from '../../core/api/models';
+import { InsuranceProvider } from '../../core/api/phase2.models';
+import { AuthService } from '../../core/auth/auth.service';
+import { FeaturesService } from '../../core/config/features.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
 import { ToastService } from '../../core/http/toast.service';
@@ -53,6 +65,9 @@ export class DoctorEditor {
   private readonly fb = inject(FormBuilder);
   private readonly dialog = inject(MatDialog);
   private readonly toast = inject(ToastService);
+  private readonly insuranceApi = inject(InsuranceApi);
+  private readonly auth = inject(AuthService);
+  protected readonly features = inject(FeaturesService);
   protected readonly languages = inject(LanguageService);
 
   /** Route parameter `:id`. */
@@ -62,6 +77,10 @@ export class DoctorEditor {
   protected readonly specialties = signal<Specialty[]>([]);
   protected readonly services = signal<Service[]>([]);
   protected readonly saving = signal(false);
+  /** insurance: all clinic providers (staff only) and the ids this doctor accepts. */
+  protected readonly providers = signal<InsuranceProvider[]>([]);
+  protected readonly acceptedIds = signal<string[]>([]);
+  protected readonly canEditInsurance = computed(() => this.auth.role() === 'ClinicStaff');
   protected readonly uploading = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
@@ -73,6 +92,7 @@ export class DoctorEditor {
     yearsExperience: [null as number | null, [Validators.min(0), Validators.max(70)]],
     consultationFeeEgp: [null as number | null, Validators.min(0)],
     isPublished: [false],
+    offersVideo: [false],
   });
 
   constructor() {
@@ -80,6 +100,11 @@ export class DoctorEditor {
     effect(() => {
       this.languages.language();
       this.api.specialties().subscribe((s) => this.specialties.set(s));
+    });
+    effect(() => {
+      if (this.features.isOn('insurance') && this.canEditInsurance()) {
+        this.insuranceApi.list().subscribe((list) => this.providers.set(list));
+      }
     });
     effect(() => {
       const id = this.id();
@@ -99,7 +124,9 @@ export class DoctorEditor {
       yearsExperience: doctor.yearsExperience ?? null,
       consultationFeeEgp: doctor.consultationFeeEgp ?? null,
       isPublished: doctor.isPublished,
+      offersVideo: doctor.offersVideo ?? false,
     });
+    this.acceptedIds.set((doctor.insuranceProviders ?? []).map((p) => p.id));
   }
 
   protected title(): string {
@@ -109,6 +136,10 @@ export class DoctorEditor {
 
   protected specialtyName(s: Specialty): string {
     return s.name;
+  }
+
+  protected providerName(p: InsuranceProvider): string {
+    return localized(this.languages.language(), p.nameAr, p.nameEn);
   }
 
   protected serviceName(s: Service): string {
@@ -134,7 +165,18 @@ export class DoctorEditor {
         yearsExperience: v.yearsExperience === null ? null : Number(v.yearsExperience),
         consultationFeeEgp: v.consultationFeeEgp === null ? null : Number(v.consultationFeeEgp),
         isPublished: v.isPublished,
+        // Feature-only field: the backend ignores it when the feature is off, so do not send it.
+        ...(this.features.isOn('videoConsultation') ? { offersVideo: v.offersVideo } : {}),
       })
+      .pipe(
+        switchMap((doctor) =>
+          this.features.isOn('insurance') && this.canEditInsurance()
+            ? this.insuranceApi
+                .setDoctorProviders(this.id(), this.acceptedIds())
+                .pipe(switchMap(() => this.api.get(this.id())))
+            : of(doctor),
+        ),
+      )
       .subscribe({
         next: (doctor) => {
           this.saving.set(false);

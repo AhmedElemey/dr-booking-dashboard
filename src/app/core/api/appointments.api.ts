@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { apiUrl } from '../config/api-url';
 import { AppointmentQuery, CreateAppointmentRequest, DashboardAppointment, Paged } from './models';
+import { VideoLink } from './phase2.models';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentsApi {
@@ -54,5 +55,10 @@ export class AppointmentsApi {
       apiUrl(`/dashboard/appointments/${id}/no-show`),
       {},
     );
+  }
+
+  /** videoConsultation: the host link; 409 VIDEO_NOT_OPEN outside the window. */
+  video(id: string): Observable<VideoLink> {
+    return this.http.get<VideoLink>(apiUrl(`/dashboard/appointments/${id}/video`));
   }
 }

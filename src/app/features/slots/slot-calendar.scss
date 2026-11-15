@@ -196,3 +196,24 @@ header {
   padding-inline: 16px;
   font-weight: 500;
 }
+
+.holiday {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-inline-size: 100%;
+  padding-inline: 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: var(--ml-noshow-bg);
+  color: var(--ml-noshow);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  mat-icon {
+    font-size: 13px;
+    inline-size: 13px;
+    block-size: 13px;
+  }
+}

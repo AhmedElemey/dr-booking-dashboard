@@ -80,3 +80,62 @@ dd {
   --mat-button-outlined-label-text-color: #b3261e;
   --mat-button-outlined-outline-color: #b3261e;
 }
+
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 8px;
+
+  mat-icon {
+    font-size: 14px;
+    inline-size: 14px;
+    block-size: 14px;
+  }
+}
+
+.join {
+  margin-block-start: 8px;
+}
+
+.price {
+  border-collapse: collapse;
+  inline-size: 100%;
+
+  th {
+    text-align: start;
+    font-weight: normal;
+    color: var(--mat-sys-on-surface-variant);
+    padding-block: 2px;
+  }
+
+  td {
+    text-align: end;
+    padding-block: 2px;
+  }
+
+  .total th,
+  .total td {
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+    border-block-start: 1px solid var(--mat-sys-outline-variant);
+  }
+}
+
+.payment-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block-start: 8px;
+}
+
+.ins-note {
+  inline-size: 100%;
+  margin-block-start: 8px;
+}
+
+.review-comment {
+  margin-block-start: 4px;
+  white-space: pre-wrap;
+}

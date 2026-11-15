@@ -61,3 +61,15 @@
 .when {
   font-weight: 500;
 }
+
+.mode {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-block-end: 16px;
+}
+
+.mode-label {
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant);
+}

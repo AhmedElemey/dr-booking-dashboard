@@ -1,6 +1,17 @@
 <div class="page">
   <div class="page-title">
     <h1>{{ 'slots.title' | translate }}</h1>
+    @if (features.isOn('workingHoursTemplates')) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="apply-template"
+        (click)="openApplyTemplate()"
+        [disabled]="!selectedDoctorId()"
+      >
+        <mat-icon>view_week</mat-icon>{{ 'applyTemplate.button' | translate }}
+      </button>
+    }
     <button mat-stroked-button type="button" (click)="openBulk()" [disabled]="!selectedDoctorId()">
       <mat-icon>date_range</mat-icon>{{ 'slots.bulk' | translate }}
     </button>
@@ -76,6 +87,11 @@
               <span class="dow">{{ clinicTime.keyLabel(col.key, 'ccc') }}</span>
               <span class="dom">{{ clinicTime.keyLabel(col.key, 'd LLL') }}</span>
             </button>
+            @if (col.holiday) {
+              <span class="holiday" [title]="col.holiday">
+                <mat-icon aria-hidden="true">beach_access</mat-icon>{{ col.holiday }}
+              </span>
+            }
             <span class="muted tally">
               {{ countOf(col, 'Open') }} / {{ countOf(col, 'Reserved') }} /
               {{ countOf(col, 'Blocked') }}

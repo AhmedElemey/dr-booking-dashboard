@@ -73,6 +73,19 @@
   min-inline-size: 180px;
 }
 
+.nav-group-title {
+  padding-block: 12px 4px;
+  padding-inline: 28px;
+  font: var(--mat-sys-label-medium);
+  letter-spacing: 0.04em;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Inset the pill 12px from the drawer edge so it never touches the screen edge.
+.sidenav a[mat-list-item] {
+  margin-inline: 12px;
+}
+
 .active {
   --mat-list-list-item-container-color: var(--mat-sys-secondary-container);
   background: var(--mat-sys-secondary-container);

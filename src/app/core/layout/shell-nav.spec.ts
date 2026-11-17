@@ -73,4 +73,32 @@ describe('Shell navigation (phase 2)', () => {
     expect(l).toContain('/holidays');
     expect(l).not.toContain('/coupons');
   });
+
+  const groups = (role: string, on: string[] = []) => {
+    const h = setupPage(Shell, { features: on });
+    TestBed_auth(h).user.set(user(role) as never);
+    return internals(h.fixture)['navGroups']() as { group: string; items: { link: string }[] }[];
+  };
+
+  it('groups the menu under ordered headers', () => {
+    const all = groups('ClinicStaff', [...PHASE2_FEATURE_KEYS]);
+    expect(all.map((g) => g.group)).toEqual([
+      'today',
+      'patients',
+      'schedule',
+      'money',
+      'growth',
+      'settings',
+    ]);
+    expect(all[0].items.map((i) => i.link)).toEqual([
+      '/agenda',
+      '/appointments/new',
+      '/waiting-list',
+    ]);
+  });
+
+  it('hides a group header when it has no visible items', () => {
+    const bare = groups('ClinicStaff');
+    expect(bare.map((g) => g.group)).toEqual(['today', 'schedule', 'settings']);
+  });
 });

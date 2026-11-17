@@ -4,6 +4,8 @@ import {
   dateRange,
   dayOfWeekNumber,
   formatDate,
+  formatDateKey,
+  formatDateLong,
   formatRange,
   formatTime,
   localToUtcIso,
@@ -34,15 +36,22 @@ describe('clinic time', () => {
     expect(dateKeyOf('2026-11-02T22:30:00Z', CAIRO)).toBe('2026-11-03');
   });
 
-  it('localizes weekday names but keeps Latin digits', () => {
+  it('localizes weekday names but keeps Latin digits in both languages', () => {
     expect(formatDate('2026-11-02T07:00:00Z', CAIRO, 'en')).toBe('Mon 2 Nov');
     const ar = formatDate('2026-11-02T07:00:00Z', CAIRO, 'ar');
-    expect(ar).toContain('٢');
-    expect(ar).not.toMatch(/\d/);
+    expect(ar).toContain('2');
+    expect(ar).not.toMatch(/[٠-٩]/);
   });
 
-  it('uses Arabic-Indic digits for times in Arabic but Latin in English', () => {
-    expect(formatTime('2026-12-01T07:00:00Z', CAIRO, 'ar')).toBe('٠٩:٠٠');
+  it('uses the Arabic comma in Arabic long dates', () => {
+    expect(formatDateKey('2026-11-17', 'cccc, d LLLL', 'ar')).toContain('،');
+    expect(formatDateKey('2026-11-17', 'cccc, d LLLL', 'ar')).not.toContain(',');
+    expect(formatDateKey('2026-11-17', 'cccc, d LLLL', 'en')).toContain(',');
+    expect(formatDateLong('2026-11-17T07:00:00Z', CAIRO, 'ar')).not.toContain(',');
+  });
+
+  it('uses Latin digits for times in both languages', () => {
+    expect(formatTime('2026-12-01T07:00:00Z', CAIRO, 'ar')).toBe('09:00');
     expect(formatTime('2026-12-01T07:00:00Z', CAIRO, 'en')).toBe('09:00');
   });
 

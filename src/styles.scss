@@ -17,7 +17,12 @@ html {
         primary: brand.$primary-palette,
         tertiary: brand.$accent-palette,
       ),
-      typography: Roboto,
+      // Noto Sans Arabic only covers Arabic code points (unicode-range), so Latin text still
+      // falls through to Roboto while Arabic never reaches an uncontrolled system font.
+      typography: (
+        plain-family: ('Noto Sans Arabic', Roboto, sans-serif),
+        brand-family: ('Noto Sans Arabic', Roboto, sans-serif),
+      ),
       density: 0,
     )
   );

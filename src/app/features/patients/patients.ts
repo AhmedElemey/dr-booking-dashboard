@@ -73,16 +73,20 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
               <tbody>
                 @for (p of result().items; track p.id) {
                   <tr>
-                    <td>
+                    <td [attr.data-label]="'agenda.col.patient' | translate">
                       <a class="name" dir="auto" [routerLink]="['/patients', p.id]">{{
                         p.fullName || p.phone
                       }}</a>
                     </td>
-                    <td>
+                    <td [attr.data-label]="'agenda.col.phone' | translate">
                       <span class="ltr-text">{{ p.phone }}</span>
                     </td>
-                    <td>{{ p.lastVisitAt ? clinicTime.date(p.lastVisitAt) : '-' }}</td>
-                    <td class="num">{{ p.appointmentsCount }}</td>
+                    <td [attr.data-label]="'patients.lastVisit' | translate">
+                      {{ p.lastVisitAt ? clinicTime.date(p.lastVisitAt) : '-' }}
+                    </td>
+                    <td class="num" [attr.data-label]="'patients.visits' | translate">
+                      {{ p.appointmentsCount }}
+                    </td>
                     <td class="end">
                       <a mat-stroked-button [routerLink]="['/patients', p.id]">
                         <mat-icon>folder_open</mat-icon>{{ 'patients.open' | translate }}

@@ -83,21 +83,25 @@ const CHANNELS: MessageChannel[] = ['Push', 'Sms', 'WhatsApp'];
               <tbody>
                 @for (m of result().items; track m.id) {
                   <tr>
-                    <td class="nowrap">
+                    <td class="nowrap" [attr.data-label]="'payments.col.date' | translate">
                       {{ clinicTime.date(m.createdAt) }}
                       <span class="ltr-text muted">{{ clinicTime.time(m.createdAt) }}</span>
                     </td>
-                    <td>
+                    <td [attr.data-label]="'messages.channel' | translate">
                       <span class="pill info">{{
                         'messages.channels.' + m.channel | translate
                       }}</span>
                     </td>
-                    <td>
+                    <td [attr.data-label]="'messages.to' | translate">
                       <span class="ltr-text">{{ m.to }}</span>
                     </td>
-                    <td>{{ kindLabel(m.kind) }}</td>
-                    <td class="body" dir="auto">{{ m.body }}</td>
-                    <td>
+                    <td [attr.data-label]="'messages.kind' | translate">{{ kindLabel(m.kind) }}</td>
+                    <td class="body" [attr.data-label]="'messages.body' | translate">
+                      <span dir="auto">
+                        {{ m.body }}
+                      </span>
+                    </td>
+                    <td [attr.data-label]="'agenda.col.status' | translate">
                       <span
                         class="pill"
                         [class.ok]="m.status === 'Sent'"

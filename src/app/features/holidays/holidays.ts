@@ -144,9 +144,11 @@ import { DateField } from '../../shared/date-field';
               <tbody>
                 @for (h of holidays(); track h.id) {
                   <tr>
-                    <td>{{ clinicTime.keyLabel(h.date, 'cccc, d LLLL') }}</td>
-                    <td>{{ name(h) }}</td>
-                    <td>
+                    <td [attr.data-label]="'holidays.date' | translate">
+                      {{ clinicTime.keyLabel(h.date, 'cccc, d LLLL') }}
+                    </td>
+                    <td [attr.data-label]="'holidays.name' | translate">{{ name(h) }}</td>
+                    <td [attr.data-label]="'holidays.source' | translate">
                       <span class="pill" [class.info]="h.source === 'EgyptPublic'">{{
                         'holidays.sources.' + h.source | translate
                       }}</span>

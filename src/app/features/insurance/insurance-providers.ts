@@ -137,8 +137,8 @@ export class InsuranceProviderDialog {
               <tbody>
                 @for (p of providers(); track p.id) {
                   <tr [class.inactive]="!p.isActive">
-                    <td>{{ name(p) }}</td>
-                    <td>
+                    <td [attr.data-label]="'insurance.name' | translate">{{ name(p) }}</td>
+                    <td [attr.data-label]="'agenda.col.status' | translate">
                       <span class="pill" [class.ok]="p.isActive">{{
                         (p.isActive ? 'insurance.active' : 'insurance.inactive') | translate
                       }}</span>

@@ -101,7 +101,7 @@ const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled',
               <tbody>
                 @for (e of entries(); track e.id) {
                   <tr>
-                    <td>
+                    <td [attr.data-label]="'waitingList.col.patient' | translate">
                       <span dir="auto">{{ e.patient.fullName || '-' }}</span>
                       @if (e.familyMember; as m) {
                         <div class="muted small">
@@ -109,17 +109,23 @@ const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled',
                         </div>
                       }
                     </td>
-                    <td>
+                    <td [attr.data-label]="'agenda.col.phone' | translate">
                       <span class="ltr-text">{{ e.patient.phone }}</span>
                     </td>
-                    <td dir="auto">{{ e.doctor.name }}</td>
-                    <td>{{ clinicTime.keyLabel(e.date, 'ccc d LLL yyyy') }}</td>
-                    <td>
+                    <td [attr.data-label]="'agenda.col.doctor' | translate">
+                      <span dir="auto">
+                        {{ e.doctor.name }}
+                      </span>
+                    </td>
+                    <td [attr.data-label]="'waitingList.date' | translate">
+                      {{ clinicTime.keyLabel(e.date, 'ccc d LLL yyyy') }}
+                    </td>
+                    <td [attr.data-label]="'agenda.col.status' | translate">
                       <span class="pill" [class]="'pill ' + tone(e.status)">{{
                         'waitingList.status.' + e.status | translate
                       }}</span>
                     </td>
-                    <td>
+                    <td [attr.data-label]="'waitingList.col.notified' | translate">
                       @if (e.notifiedAt) {
                         {{ clinicTime.date(e.notifiedAt) }}
                         <span class="ltr-text">{{ clinicTime.time(e.notifiedAt) }}</span>

@@ -117,7 +117,7 @@
           {{ 'agenda.empty' | translate }}
         </p>
       } @else {
-        <table>
+        <table class="stack-table">
           <thead>
             <tr>
               <th scope="col">{{ 'agenda.col.time' | translate }}</th>
@@ -131,7 +131,7 @@
           <tbody>
             @for (a of group.items; track a.id) {
               <tr [class.selected]="a.id === selectedId()" (click)="selectedId.set(a.id)">
-                <td class="time">
+                <td class="time" [attr.data-label]="'agenda.col.time' | translate">
                   <button
                     type="button"
                     class="row-link ltr-text"
@@ -140,13 +140,27 @@
                     {{ clinicTime.time(a.startsAt, a.timezone) }}
                   </button>
                 </td>
-                <td dir="auto">{{ a.patient.fullName || '-' }}</td>
-                <td>
+                <td [attr.data-label]="'agenda.col.patient' | translate">
+                  <span dir="auto">
+                    {{ a.patient.fullName || '-' }}
+                  </span>
+                </td>
+                <td [attr.data-label]="'agenda.col.phone' | translate">
                   <span class="ltr-text">{{ a.patient.phone }}</span>
                 </td>
-                <td dir="auto">{{ a.doctor.name }}</td>
-                <td dir="auto">{{ a.service?.name || '-' }}</td>
-                <td><app-status-chip [status]="a.status" /></td>
+                <td [attr.data-label]="'agenda.col.doctor' | translate">
+                  <span dir="auto">
+                    {{ a.doctor.name }}
+                  </span>
+                </td>
+                <td [attr.data-label]="'agenda.col.service' | translate">
+                  <span dir="auto">
+                    {{ a.service?.name || '-' }}
+                  </span>
+                </td>
+                <td [attr.data-label]="'agenda.col.status' | translate">
+                  <app-status-chip [status]="a.status" />
+                </td>
               </tr>
             }
           </tbody>

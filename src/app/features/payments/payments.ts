@@ -119,17 +119,29 @@ const STATUSES: PaymentRecordStatus[] = ['Pending', 'Paid', 'Failed', 'Refunded'
               <tbody>
                 @for (p of payments(); track p.id) {
                   <tr>
-                    <td>
+                    <td [attr.data-label]="'payments.col.date' | translate">
                       {{ clinicTime.date(p.paidAt || p.createdAt) }}
                       <span class="ltr-text muted">{{
                         clinicTime.time(p.paidAt || p.createdAt)
                       }}</span>
                     </td>
-                    <td dir="auto">{{ p.patient?.fullName || '-' }}</td>
-                    <td dir="auto">{{ p.doctor?.name || '-' }}</td>
-                    <td>{{ 'payments.method.' + p.method | translate }}</td>
-                    <td class="num">{{ amount(p.amountEgp) }} {{ 'common.egp' | translate }}</td>
-                    <td>
+                    <td [attr.data-label]="'payments.col.patient' | translate">
+                      <span dir="auto">
+                        {{ p.patient?.fullName || '-' }}
+                      </span>
+                    </td>
+                    <td [attr.data-label]="'agenda.col.doctor' | translate">
+                      <span dir="auto">
+                        {{ p.doctor?.name || '-' }}
+                      </span>
+                    </td>
+                    <td [attr.data-label]="'payments.col.method' | translate">
+                      {{ 'payments.method.' + p.method | translate }}
+                    </td>
+                    <td class="num" [attr.data-label]="'payments.col.amount' | translate">
+                      {{ amount(p.amountEgp) }} {{ 'common.egp' | translate }}
+                    </td>
+                    <td [attr.data-label]="'agenda.col.status' | translate">
                       <span class="pill" [class]="'pill ' + tone(p.status)">{{
                         'payments.status.' + p.status | translate
                       }}</span>

@@ -21,6 +21,7 @@ import { Coupon, CouponRequest } from '../../core/api/phase2.models';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
 import { numOrNull } from '../../core/util/format';
+import { DateField } from '../../shared/date-field';
 
 export const COUPON_CODE = /^[A-Z0-9-]{3,20}$/;
 
@@ -40,6 +41,7 @@ export function validWindow(group: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-coupon-dialog',
   imports: [
+    DateField,
     ReactiveFormsModule,
     MatDialogModule,
     MatButton,
@@ -135,22 +137,12 @@ export function validWindow(group: AbstractControl): ValidationErrors | null {
             </mat-form-field>
           }
 
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'coupons.validFrom' | translate }}</mat-label>
-            <input matInput type="date" formControlName="validFrom" />
-            @if (form.controls.validFrom.hasError('required')) {
-              <mat-error>{{ 'validation.required' | translate }}</mat-error>
-            }
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'coupons.validTo' | translate }}</mat-label>
-            <input matInput type="date" formControlName="validTo" />
-            @if (form.controls.validTo.hasError('required')) {
-              <mat-error>{{ 'validation.required' | translate }}</mat-error>
-            } @else if (form.hasError('window')) {
-              <mat-error>{{ 'coupons.windowInvalid' | translate }}</mat-error>
-            }
-          </mat-form-field>
+          <app-date-field [label]="'coupons.validFrom' | translate" formControlName="validFrom" />
+          <app-date-field
+            [label]="'coupons.validTo' | translate"
+            [error]="form.hasError('window') ? ('coupons.windowInvalid' | translate) : null"
+            formControlName="validTo"
+          />
           <mat-form-field appearance="outline">
             <mat-label>{{ 'coupons.maxRedemptions' | translate }}</mat-label>
             <input matInput type="number" formControlName="maxRedemptions" min="1" />

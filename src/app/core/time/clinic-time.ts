@@ -7,12 +7,21 @@ export const DATE_KEY = 'yyyy-MM-dd';
 
 export type Lang = 'ar' | 'en';
 
-/** Parses an API instant (Arabic-Indic digits when the UI is Arabic) (ISO 8601, `Z` or offset) into the clinic zone. */
+/**
+ * Digits are Western (Latin) in both languages: it matches phone numbers, money and receipts.
+ * Luxon's Arabic output still uses the Latin comma in patterns such as `cccc, d LLLL`.
+ */
+const NUMBERING = 'latn';
+
+const localizeComma = (text: string, lang: Lang): string =>
+  lang === 'ar' ? text.replace(/,/g, '،') : text;
+
+/** Parses an API instant (ISO 8601, `Z` or offset) into the clinic zone. */
 export function inClinic(iso: string, tz: string, lang: Lang = 'en'): DateTime {
   return DateTime.fromISO(iso, {
     zone: tz,
     locale: lang,
-    numberingSystem: lang === 'ar' ? 'arab' : 'latn',
+    numberingSystem: NUMBERING,
   });
 }
 
@@ -27,7 +36,7 @@ export function formatDate(iso: string, tz: string, lang: Lang = 'en'): string {
 }
 
 export function formatDateLong(iso: string, tz: string, lang: Lang = 'en'): string {
-  return inClinic(iso, tz, lang).toFormat('cccc, d LLLL yyyy');
+  return localizeComma(inClinic(iso, tz, lang).toFormat('cccc, d LLLL yyyy'), lang);
 }
 
 export function formatRange(
@@ -55,10 +64,10 @@ export function todayKey(tz: string, now: DateTime = DateTime.now()): string {
 }
 
 export function formatDateKey(key: string, pattern: string, lang: Lang = 'en'): string {
-  return DateTime.fromISO(key, {
-    locale: lang,
-    numberingSystem: lang === 'ar' ? 'arab' : 'latn',
-  }).toFormat(pattern);
+  return localizeComma(
+    DateTime.fromISO(key, { locale: lang, numberingSystem: NUMBERING }).toFormat(pattern),
+    lang,
+  );
 }
 
 /** Locale-independent parse of a `yyyy-MM-dd` key (always Latin digits). */

@@ -19,7 +19,12 @@ import { BrandService } from '../config/brand.service';
 import { FeaturesService } from '../config/features.service';
 import { ClinicTime } from '../time/clinic-time.service';
 
+type NavGroup = 'today' | 'patients' | 'schedule' | 'money' | 'growth' | 'settings';
+
+const GROUP_ORDER: NavGroup[] = ['today', 'patients', 'schedule', 'money', 'growth', 'settings'];
+
 interface NavItem {
+  group: NavGroup;
   labelKey: string;
   icon: string;
   link: string;
@@ -70,23 +75,38 @@ export class Shell implements OnInit {
     const user = this.auth.user();
     if (!user) return [];
     const items: NavItem[] = [
-      { labelKey: 'nav.agenda', icon: 'calendar_today', link: '/agenda', roles: STAFF_ROLES },
+      {
+        labelKey: 'nav.agenda',
+        icon: 'calendar_today',
+        group: 'today',
+        link: '/agenda',
+        roles: STAFF_ROLES,
+      },
       {
         labelKey: 'nav.newAppointment',
         icon: 'add_circle_outline',
+        group: 'today',
         link: '/appointments/new',
         roles: STAFF_ROLES,
       },
-      { labelKey: 'nav.slots', icon: 'event_available', link: '/slots', roles: STAFF_ROLES },
+      {
+        labelKey: 'nav.slots',
+        icon: 'event_available',
+        group: 'schedule',
+        link: '/slots',
+        roles: STAFF_ROLES,
+      },
       {
         labelKey: user.role === 'Doctor' ? 'nav.myProfile' : 'nav.doctors',
         icon: 'medical_services',
+        group: 'schedule',
         link: user.role === 'Doctor' && user.doctorId ? `/doctors/${user.doctorId}` : '/doctors',
         roles: STAFF_ROLES,
       },
       {
         labelKey: 'nav.waitingList',
         icon: 'hourglass_top',
+        group: 'today',
         link: '/waiting-list',
         roles: STAFF_ROLES,
         feature: 'waitingList',
@@ -94,6 +114,7 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.patients',
         icon: 'folder_shared',
+        group: 'patients',
         link: '/patients',
         roles: STAFF_ROLES,
         feature: 'patientRecords',
@@ -101,6 +122,7 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.payments',
         icon: 'payments',
+        group: 'money',
         link: '/payments',
         roles: STAFF_ROLES,
         feature: 'onlinePayments',
@@ -108,6 +130,7 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.reviews',
         icon: 'star_rate',
+        group: 'patients',
         link: '/reviews',
         roles: STAFF_ROLES,
         feature: 'reviews',
@@ -115,6 +138,7 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.reports',
         icon: 'insights',
+        group: 'growth',
         link: '/reports',
         roles: STAFF_ROLES,
         feature: 'reports',
@@ -122,6 +146,7 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.holidays',
         icon: 'beach_access',
+        group: 'schedule',
         link: '/holidays',
         roles: CLINIC_ROLES,
         feature: 'holidayCalendar',
@@ -129,6 +154,7 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.workingHours',
         icon: 'schedule',
+        group: 'schedule',
         link: '/working-hours',
         roles: CLINIC_ROLES,
         feature: 'workingHoursTemplates',
@@ -136,6 +162,7 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.insurance',
         icon: 'health_and_safety',
+        group: 'money',
         link: '/insurance',
         roles: ADMIN_ROLES,
         feature: 'insurance',
@@ -143,6 +170,7 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.coupons',
         icon: 'sell',
+        group: 'money',
         link: '/coupons',
         roles: CLINIC_ROLES,
         feature: 'promotions',
@@ -150,6 +178,7 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.recall',
         icon: 'campaign',
+        group: 'growth',
         link: '/recall',
         roles: CLINIC_ROLES,
         feature: 'recallCampaigns',
@@ -157,14 +186,22 @@ export class Shell implements OnInit {
       {
         labelKey: 'nav.messages',
         icon: 'forum',
+        group: 'patients',
         link: '/messages',
         roles: ADMIN_ROLES,
         feature: 'whatsappReminders',
       },
-      { labelKey: 'nav.clinic', icon: 'apartment', link: '/clinic', roles: STAFF_ROLES },
+      {
+        labelKey: 'nav.clinic',
+        icon: 'apartment',
+        group: 'settings',
+        link: '/clinic',
+        roles: STAFF_ROLES,
+      },
       {
         labelKey: 'nav.adminClinics',
         icon: 'domain',
+        group: 'settings',
         link: '/admin/clinics',
         roles: ['PlatformAdmin'],
       },
@@ -173,6 +210,16 @@ export class Shell implements OnInit {
     return items.filter(
       (item) => item.roles.includes(user.role) && (!item.feature || flags[item.feature]),
     );
+  });
+
+  /** The visible items under their group headers, in a fixed order; empty groups are dropped. */
+  protected readonly navGroups = computed(() => {
+    const items = this.nav();
+    return GROUP_ORDER.map((group) => ({
+      group,
+      titleKey: `nav.groups.${group}`,
+      items: items.filter((item) => item.group === group),
+    })).filter((entry) => entry.items.length > 0);
   });
 
   ngOnInit(): void {

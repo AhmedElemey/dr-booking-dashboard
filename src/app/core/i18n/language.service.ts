@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Direction, Directionality } from '@angular/cdk/bidi';
+import { DateAdapter } from '@angular/material/core';
 import { TranslateService } from '@ngx-translate/core';
 import { tap } from 'rxjs';
 
@@ -16,6 +17,7 @@ export class LanguageService {
   private readonly document = inject(DOCUMENT);
   private readonly directionality = inject(Directionality);
   private readonly features = inject(FeaturesService);
+  private readonly dateAdapter = inject<DateAdapter<unknown>>(DateAdapter, { optional: true });
 
   readonly language = signal<AppLanguage>('ar');
   readonly direction = computed<Direction>(() => (this.language() === 'ar' ? 'rtl' : 'ltr'));
@@ -44,6 +46,8 @@ export class LanguageService {
     // Overlays (dialogs, menus, selects) read the root Directionality, which is otherwise
     // only sampled once at startup.
     this.directionality.valueSignal.set(this.direction());
+    // Western digits in both languages (matches clinic-time.ts); day-first week layout.
+    this.dateAdapter?.setLocale(language === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB');
     try {
       localStorage.setItem(LANGUAGE_KEY, language);
     } catch {

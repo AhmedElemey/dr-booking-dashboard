@@ -50,11 +50,13 @@ import { TemplateDialog } from './template-dialog';
               <tbody>
                 @for (t of templates(); track t.id) {
                   <tr>
-                    <td>
-                      <strong>{{ t.name }}</strong>
+                    <td [attr.data-label]="'workingHours.name' | translate">
+                      <strong dir="auto">{{ t.name }}</strong>
                     </td>
-                    <td class="num">{{ t.slotMinutes }} {{ 'common.min' | translate }}</td>
-                    <td>
+                    <td class="num" [attr.data-label]="'workingHours.slotMinutes' | translate">
+                      {{ t.slotMinutes }} {{ 'common.min' | translate }}
+                    </td>
+                    <td [attr.data-label]="'workingHours.rules' | translate">
                       @for (line of summary(t); track line.hours) {
                         <div>
                           {{ line.days }}:

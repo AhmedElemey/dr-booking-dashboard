@@ -11,6 +11,7 @@ import { DoctorsApi } from '../../core/api/doctors.api';
 import { Clock } from '../../core/time/clock';
 import { ClinicTime } from '../../core/time/clinic-time.service';
 import { SingleSlotIssue, buildSingleSlot } from './single-slot';
+import { DateField } from '../../shared/date-field';
 
 export interface AddSlotDialogData {
   doctorId: string;
@@ -21,6 +22,7 @@ export interface AddSlotDialogData {
 @Component({
   selector: 'app-add-slot-dialog',
   imports: [
+    DateField,
     FormsModule,
     MatDialogModule,
     MatButton,
@@ -37,10 +39,7 @@ export interface AddSlotDialogData {
     <form (ngSubmit)="save()" novalidate>
       <mat-dialog-content>
         <div class="grid">
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'slots.date' | translate }}</mat-label>
-            <input matInput type="date" name="date" [(ngModel)]="date" />
-          </mat-form-field>
+          <app-date-field [label]="'slots.date' | translate" name="date" [(ngModel)]="date" />
           <mat-form-field appearance="outline">
             <mat-label>{{ 'slots.startTime' | translate }}</mat-label>
             <input matInput type="time" step="900" name="time" [(ngModel)]="time" />

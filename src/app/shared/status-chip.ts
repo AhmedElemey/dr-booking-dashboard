@@ -17,7 +17,7 @@ import { AppointmentStatus, SlotStatus } from '../core/api/models';
       padding-block: 2px;
       padding-inline: 10px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 500;
       white-space: nowrap;
     }

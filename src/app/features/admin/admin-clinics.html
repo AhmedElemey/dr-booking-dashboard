@@ -79,7 +79,7 @@
         @for (u of createdUsers(); track u.id) {
           <li>
             <div>
-              <strong>{{ u.fullName }}</strong>
+              <strong dir="auto">{{ u.fullName }}</strong>
               <span class="muted"> · {{ 'roles.' + u.role | translate }} · {{ u.clinicName }}</span>
               <div class="ltr-text muted">{{ u.phone }}</div>
             </div>

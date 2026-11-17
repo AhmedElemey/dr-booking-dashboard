@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -16,6 +15,7 @@ import { ToastService } from '../../core/http/toast.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
 import { ClinicTime } from '../../core/time/clinic-time.service';
+import { DateField } from '../../shared/date-field';
 
 const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled', 'Expired'];
 
@@ -23,11 +23,11 @@ const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled',
 @Component({
   selector: 'app-waiting-list',
   imports: [
+    DateField,
     FormsModule,
     MatButton,
     MatFormField,
     MatLabel,
-    MatInput,
     MatSelect,
     MatOption,
     MatIcon,
@@ -54,10 +54,12 @@ const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled',
             </mat-select>
           </mat-form-field>
         }
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'waitingList.date' | translate }}</mat-label>
-          <input matInput type="date" [ngModel]="date()" (ngModelChange)="date.set($event)" />
-        </mat-form-field>
+        <app-date-field
+          [label]="'waitingList.date' | translate"
+          subscriptSizing="dynamic"
+          [ngModel]="date()"
+          (ngModelChange)="date.set($event)"
+        />
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'agenda.status' | translate }}</mat-label>
           <mat-select [value]="status()" (selectionChange)="status.set($event.value)">
@@ -99,25 +101,31 @@ const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled',
               <tbody>
                 @for (e of entries(); track e.id) {
                   <tr>
-                    <td>
-                      {{ e.patient.fullName || '-' }}
+                    <td [attr.data-label]="'waitingList.col.patient' | translate">
+                      <span dir="auto">{{ e.patient.fullName || '-' }}</span>
                       @if (e.familyMember; as m) {
                         <div class="muted small">
                           {{ 'waitingList.forMember' | translate: { name: m.fullName } }}
                         </div>
                       }
                     </td>
-                    <td>
+                    <td [attr.data-label]="'agenda.col.phone' | translate">
                       <span class="ltr-text">{{ e.patient.phone }}</span>
                     </td>
-                    <td>{{ e.doctor.name }}</td>
-                    <td>{{ clinicTime.keyLabel(e.date, 'ccc d LLL yyyy') }}</td>
-                    <td>
+                    <td [attr.data-label]="'agenda.col.doctor' | translate">
+                      <span dir="auto">
+                        {{ e.doctor.name }}
+                      </span>
+                    </td>
+                    <td [attr.data-label]="'waitingList.date' | translate">
+                      {{ clinicTime.keyLabel(e.date, 'ccc d LLL yyyy') }}
+                    </td>
+                    <td [attr.data-label]="'agenda.col.status' | translate">
                       <span class="pill" [class]="'pill ' + tone(e.status)">{{
                         'waitingList.status.' + e.status | translate
                       }}</span>
                     </td>
-                    <td>
+                    <td [attr.data-label]="'waitingList.col.notified' | translate">
                       @if (e.notifiedAt) {
                         {{ clinicTime.date(e.notifiedAt) }}
                         <span class="ltr-text">{{ clinicTime.time(e.notifiedAt) }}</span>

@@ -20,7 +20,7 @@
 
       <dt><mat-icon>person</mat-icon>{{ 'drawer.patient' | translate }}</dt>
       <dd>
-        <div>{{ a.patient.fullName || '-' }}</div>
+        <div dir="auto">{{ a.patient.fullName || '-' }}</div>
         <a class="ltr-text" [href]="'tel:' + a.patient.phone">{{ a.patient.phone }}</a>
       </dd>
 
@@ -40,12 +40,12 @@
       }
 
       <dt><mat-icon>medical_services</mat-icon>{{ 'drawer.doctor' | translate }}</dt>
-      <dd>{{ a.doctor.name }}</dd>
+      <dd dir="auto">{{ a.doctor.name }}</dd>
 
       <dt><mat-icon>healing</mat-icon>{{ 'drawer.service' | translate }}</dt>
       <dd>
         @if (a.service; as s) {
-          {{ s.name }}
+          <span dir="auto">{{ s.name }}</span>
           <span class="muted">({{ s.durationMinutes }} {{ 'common.min' | translate }})</span>
         } @else {
           <span class="muted">{{ 'drawer.noService' | translate }}</span>
@@ -128,7 +128,7 @@
         <dt><mat-icon>health_and_safety</mat-icon>{{ 'drawer.insurance' | translate }}</dt>
         <dd>
           <div>
-            {{ ins.provider.name }} ·
+            <span dir="auto">{{ ins.provider.name }}</span> ·
             <span class="ltr-text">{{ ins.memberNumber }}</span>
           </div>
           <span
@@ -139,7 +139,7 @@
             >{{ 'drawer.insuranceStatus.' + ins.status | translate }}</span
           >
           @if (ins.note) {
-            <div class="muted">{{ ins.note }}</div>
+            <div class="muted" dir="auto">{{ ins.note }}</div>
           }
           @if (ins.status === 'Pending') {
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="ins-note">
@@ -175,7 +175,7 @@
         <dd>
           <app-rating [value]="review.rating" />
           @if (review.comment) {
-            <div class="review-comment">{{ review.comment }}</div>
+            <div class="review-comment" dir="auto">{{ review.comment }}</div>
           }
         </dd>
       }

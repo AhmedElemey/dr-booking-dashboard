@@ -91,11 +91,11 @@ import { Rating } from '../../shared/rating';
               <span class="muted small">{{ clinicTime.date(r.createdAt) }}</span>
             </header>
             <p class="who">
-              <strong>{{ r.doctor.name }}</strong>
+              <strong dir="auto">{{ r.doctor.name }}</strong>
               <span class="muted"> - {{ patientLabel(r) }}</span>
             </p>
             @if (r.comment) {
-              <p class="comment">{{ r.comment }}</p>
+              <p class="comment" dir="auto">{{ r.comment }}</p>
             } @else {
               <p class="muted">{{ 'reviews.noComment' | translate }}</p>
             }
@@ -103,7 +103,7 @@ import { Rating } from '../../shared/rating';
             @if (r.reply && replyingId() !== r.id) {
               <div class="reply">
                 <strong>{{ 'reviews.yourReply' | translate }}</strong>
-                <p>{{ r.reply }}</p>
+                <p dir="auto">{{ r.reply }}</p>
               </div>
             }
 

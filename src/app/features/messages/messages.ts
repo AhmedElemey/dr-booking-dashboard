@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -11,6 +10,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessagesApi } from '../../core/api/messages.api';
 import { MessageChannel, OutboundMessage, PageResult } from '../../core/api/phase2.models';
 import { ClinicTime } from '../../core/time/clinic-time.service';
+import { DateField } from '../../shared/date-field';
 
 const CHANNELS: MessageChannel[] = ['Push', 'Sms', 'WhatsApp'];
 
@@ -18,11 +18,11 @@ const CHANNELS: MessageChannel[] = ['Push', 'Sms', 'WhatsApp'];
 @Component({
   selector: 'app-messages',
   imports: [
+    DateField,
     FormsModule,
     MatIconButton,
     MatFormField,
     MatLabel,
-    MatInput,
     MatSelect,
     MatOption,
     MatIcon,
@@ -47,14 +47,18 @@ const CHANNELS: MessageChannel[] = ['Push', 'Sms', 'WhatsApp'];
             }
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'payments.from' | translate }}</mat-label>
-          <input matInput type="date" [ngModel]="from()" (ngModelChange)="setFrom($event)" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'payments.to' | translate }}</mat-label>
-          <input matInput type="date" [ngModel]="to()" (ngModelChange)="setTo($event)" />
-        </mat-form-field>
+        <app-date-field
+          [label]="'payments.from' | translate"
+          subscriptSizing="dynamic"
+          [ngModel]="from()"
+          (ngModelChange)="setFrom($event)"
+        />
+        <app-date-field
+          [label]="'payments.to' | translate"
+          subscriptSizing="dynamic"
+          [ngModel]="to()"
+          (ngModelChange)="setTo($event)"
+        />
       </div>
 
       <section class="panel">
@@ -79,21 +83,25 @@ const CHANNELS: MessageChannel[] = ['Push', 'Sms', 'WhatsApp'];
               <tbody>
                 @for (m of result().items; track m.id) {
                   <tr>
-                    <td class="nowrap">
+                    <td class="nowrap" [attr.data-label]="'payments.col.date' | translate">
                       {{ clinicTime.date(m.createdAt) }}
                       <span class="ltr-text muted">{{ clinicTime.time(m.createdAt) }}</span>
                     </td>
-                    <td>
+                    <td [attr.data-label]="'messages.channel' | translate">
                       <span class="pill info">{{
                         'messages.channels.' + m.channel | translate
                       }}</span>
                     </td>
-                    <td>
+                    <td [attr.data-label]="'messages.to' | translate">
                       <span class="ltr-text">{{ m.to }}</span>
                     </td>
-                    <td>{{ kindLabel(m.kind) }}</td>
-                    <td class="body">{{ m.body }}</td>
-                    <td>
+                    <td [attr.data-label]="'messages.kind' | translate">{{ kindLabel(m.kind) }}</td>
+                    <td class="body" [attr.data-label]="'messages.body' | translate">
+                      <span dir="auto">
+                        {{ m.body }}
+                      </span>
+                    </td>
+                    <td [attr.data-label]="'agenda.col.status' | translate">
                       <span
                         class="pill"
                         [class.ok]="m.status === 'Sent'"

@@ -97,11 +97,17 @@ tbody tr {
   justify-content: center;
 }
 
-@media (max-width: 800px) {
+@media (min-width: 701px) and (max-width: 800px) {
   th:nth-child(3),
   td:nth-child(3),
   th:nth-child(5),
   td:nth-child(5) {
     display: none;
   }
+}
+
+.today-button.selected {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  border-color: transparent;
 }

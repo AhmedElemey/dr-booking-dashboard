@@ -4,6 +4,7 @@
 
 .sidenav {
   inline-size: 248px;
+  background: var(--mat-sys-surface-container-low);
   border-inline-end: 1px solid var(--mat-sys-outline-variant);
 }
 
@@ -70,6 +71,19 @@
   padding-block: 8px;
   padding-inline: 16px;
   min-inline-size: 180px;
+}
+
+.nav-group-title {
+  padding-block: 12px 4px;
+  padding-inline: 28px;
+  font: var(--mat-sys-label-medium);
+  letter-spacing: 0.04em;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Inset the pill 12px from the drawer edge so it never touches the screen edge.
+.sidenav a[mat-list-item] {
+  margin-inline: 12px;
 }
 
 .active {

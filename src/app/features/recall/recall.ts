@@ -264,11 +264,17 @@ export class CampaignDialog {
               <tbody>
                 @for (s of p.sample; track s.phone) {
                   <tr>
-                    <td>{{ s.name }}</td>
-                    <td>
+                    <td [attr.data-label]="'agenda.col.patient' | translate">
+                      <span dir="auto">
+                        {{ s.name }}
+                      </span>
+                    </td>
+                    <td [attr.data-label]="'agenda.col.phone' | translate">
                       <span class="ltr-text">{{ s.phone }}</span>
                     </td>
-                    <td>{{ s.lastVisitAt ? clinicTime.date(s.lastVisitAt) : '-' }}</td>
+                    <td [attr.data-label]="'patients.lastVisit' | translate">
+                      {{ s.lastVisitAt ? clinicTime.date(s.lastVisitAt) : '-' }}
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -334,13 +340,19 @@ export class RecallPreviewDialog {
             <tbody>
               @for (s of result().items; track s.id) {
                 <tr>
-                  <td>
+                  <td [attr.data-label]="'payments.col.date' | translate">
                     {{ clinicTime.date(s.sentAt) }}
                     <span class="ltr-text muted">{{ clinicTime.time(s.sentAt) }}</span>
                   </td>
-                  <td>{{ s.patientName || '-' }}</td>
-                  <td>{{ 'recall.channels.' + s.channel | translate }}</td>
-                  <td>
+                  <td [attr.data-label]="'agenda.col.patient' | translate">
+                    <span dir="auto">
+                      {{ s.patientName || '-' }}
+                    </span>
+                  </td>
+                  <td [attr.data-label]="'recall.channel' | translate">
+                    {{ 'recall.channels.' + s.channel | translate }}
+                  </td>
+                  <td [attr.data-label]="'agenda.col.status' | translate">
                     <span class="pill" [class]="'pill ' + tone(s)">{{
                       'recall.sendStatus.' + s.status | translate
                     }}</span>
@@ -459,14 +471,22 @@ export class RecallSendsDialog {
               <tbody>
                 @for (c of campaigns(); track c.id) {
                   <tr [class.inactive]="!c.isActive">
-                    <td>
-                      <strong>{{ c.name }}</strong>
+                    <td [attr.data-label]="'recall.name' | translate">
+                      <strong dir="auto">{{ c.name }}</strong>
                     </td>
-                    <td>{{ 'recall.channels.' + c.channel | translate }}</td>
-                    <td class="num">{{ c.monthsSinceLastVisit }}</td>
-                    <td>{{ 'recall.modes.' + c.mode | translate }}</td>
-                    <td>{{ c.lastRunAt ? clinicTime.date(c.lastRunAt) : '-' }}</td>
-                    <td>
+                    <td [attr.data-label]="'recall.channel' | translate">
+                      {{ 'recall.channels.' + c.channel | translate }}
+                    </td>
+                    <td class="num" [attr.data-label]="'recall.months' | translate">
+                      {{ c.monthsSinceLastVisit }}
+                    </td>
+                    <td [attr.data-label]="'recall.mode' | translate">
+                      {{ 'recall.modes.' + c.mode | translate }}
+                    </td>
+                    <td [attr.data-label]="'recall.lastRun' | translate">
+                      {{ c.lastRunAt ? clinicTime.date(c.lastRunAt) : '-' }}
+                    </td>
+                    <td [attr.data-label]="'agenda.col.status' | translate">
                       <span class="pill" [class.ok]="c.isActive">{{
                         (c.isActive ? 'recall.active' : 'recall.inactive') | translate
                       }}</span>

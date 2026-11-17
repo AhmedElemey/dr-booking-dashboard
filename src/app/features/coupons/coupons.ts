@@ -43,9 +43,17 @@ import { CouponDialog } from './coupon-dialog';
             <tbody>
               @for (r of rows(); track r.appointmentId) {
                 <tr>
-                  <td>{{ clinicTime.date(r.createdAt) }}</td>
-                  <td>{{ r.patientName || '-' }}</td>
-                  <td class="num">{{ amount(r.discountEgp) }} {{ 'common.egp' | translate }}</td>
+                  <td [attr.data-label]="'payments.col.date' | translate">
+                    {{ clinicTime.date(r.createdAt) }}
+                  </td>
+                  <td [attr.data-label]="'payments.col.patient' | translate">
+                    <span dir="auto">
+                      {{ r.patientName || '-' }}
+                    </span>
+                  </td>
+                  <td class="num" [attr.data-label]="'coupons.discount' | translate">
+                    {{ amount(r.discountEgp) }} {{ 'common.egp' | translate }}
+                  </td>
                 </tr>
               }
             </tbody>
@@ -120,24 +128,26 @@ export class RedemptionsDialog {
               <tbody>
                 @for (c of coupons(); track c.id) {
                   <tr [class.inactive]="!c.isActive">
-                    <td>
+                    <td [attr.data-label]="'coupons.code' | translate">
                       <code class="code ltr-text">{{ c.code }}</code>
                     </td>
-                    <td>
+                    <td [attr.data-label]="'coupons.offer' | translate">
                       {{ title(c) }}
                       @if (c.isPublic) {
                         <span class="pill info">{{ 'coupons.public' | translate }}</span>
                       }
                     </td>
-                    <td class="num">{{ discountLabel(c) }}</td>
-                    <td class="num">
+                    <td class="num" [attr.data-label]="'coupons.discount' | translate">
+                      {{ discountLabel(c) }}
+                    </td>
+                    <td class="num" [attr.data-label]="'coupons.validity' | translate">
                       {{ clinicTime.keyLabel(c.validFrom.slice(0, 10), 'd LLL') }} -
                       {{ clinicTime.keyLabel(c.validTo.slice(0, 10), 'd LLL yyyy') }}
                     </td>
-                    <td class="num">
+                    <td class="num" [attr.data-label]="'coupons.used' | translate">
                       {{ c.redemptionsCount }}{{ c.maxRedemptions ? ' / ' + c.maxRedemptions : '' }}
                     </td>
-                    <td>
+                    <td [attr.data-label]="'agenda.col.status' | translate">
                       <span class="pill" [class.ok]="c.isActive">{{
                         (c.isActive ? 'coupons.isActive' : 'coupons.inactive') | translate
                       }}</span>

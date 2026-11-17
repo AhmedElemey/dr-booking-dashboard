@@ -16,7 +16,14 @@
       >
         <mat-icon class="mirror">chevron_left</mat-icon>
       </button>
-      <button mat-stroked-button type="button" [disabled]="isToday()" (click)="today()">
+      <button
+        mat-stroked-button
+        type="button"
+        class="today-button"
+        [class.selected]="isToday()"
+        [attr.aria-pressed]="isToday()"
+        (click)="today()"
+      >
         {{ 'agenda.today' | translate }}
       </button>
       <button
@@ -33,19 +40,19 @@
       mat-icon-button
       type="button"
       [attr.aria-label]="'agenda.pickDate' | translate"
-      (click)="datePicker.showPicker()"
+      (click)="datePicker.open()"
     >
       <mat-icon>edit_calendar</mat-icon>
     </button>
     <input
-      #datePicker
-      type="date"
       class="date-input"
       tabindex="-1"
       aria-hidden="true"
-      [ngModel]="anchor()"
-      (ngModelChange)="setAnchor($event)"
+      [matDatepicker]="datePicker"
+      [value]="anchorDate()"
+      (dateChange)="setAnchor($event.value)"
     />
+    <mat-datepicker #datePicker />
     <span class="spacer"></span>
     <mat-button-toggle-group
       [value]="view()"
@@ -110,7 +117,7 @@
           {{ 'agenda.empty' | translate }}
         </p>
       } @else {
-        <table>
+        <table class="stack-table">
           <thead>
             <tr>
               <th scope="col">{{ 'agenda.col.time' | translate }}</th>
@@ -124,7 +131,7 @@
           <tbody>
             @for (a of group.items; track a.id) {
               <tr [class.selected]="a.id === selectedId()" (click)="selectedId.set(a.id)">
-                <td class="time">
+                <td class="time" [attr.data-label]="'agenda.col.time' | translate">
                   <button
                     type="button"
                     class="row-link ltr-text"
@@ -133,13 +140,27 @@
                     {{ clinicTime.time(a.startsAt, a.timezone) }}
                   </button>
                 </td>
-                <td>{{ a.patient.fullName || '-' }}</td>
-                <td>
+                <td [attr.data-label]="'agenda.col.patient' | translate">
+                  <span dir="auto">
+                    {{ a.patient.fullName || '-' }}
+                  </span>
+                </td>
+                <td [attr.data-label]="'agenda.col.phone' | translate">
                   <span class="ltr-text">{{ a.patient.phone }}</span>
                 </td>
-                <td>{{ a.doctor.name }}</td>
-                <td>{{ a.service?.name || '-' }}</td>
-                <td><app-status-chip [status]="a.status" /></td>
+                <td [attr.data-label]="'agenda.col.doctor' | translate">
+                  <span dir="auto">
+                    {{ a.doctor.name }}
+                  </span>
+                </td>
+                <td [attr.data-label]="'agenda.col.service' | translate">
+                  <span dir="auto">
+                    {{ a.service?.name || '-' }}
+                  </span>
+                </td>
+                <td [attr.data-label]="'agenda.col.status' | translate">
+                  <app-status-chip [status]="a.status" />
+                </td>
               </tr>
             }
           </tbody>

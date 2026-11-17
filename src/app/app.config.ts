@@ -5,6 +5,7 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
+import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
 
@@ -32,6 +33,16 @@ export const appConfig: ApplicationConfig = {
         ...mockInterceptors,
       ]),
     ),
+    // Date pickers: day-first dd/MM/yyyy in both languages; the locale follows LanguageService.
+    provideLuxonDateAdapter({
+      parse: { dateInput: 'dd/MM/yyyy' },
+      display: {
+        dateInput: 'dd/MM/yyyy',
+        monthYearLabel: 'LLL yyyy',
+        dateA11yLabel: 'DDD',
+        monthYearA11yLabel: 'LLLL yyyy',
+      },
+    }),
     provideTranslateService({
       loader: { provide: TranslateLoader, useClass: BrandedTranslateLoader },
       fallbackLang: 'en',

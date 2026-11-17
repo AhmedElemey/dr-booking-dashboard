@@ -3,6 +3,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatDatepicker, MatDatepickerInput } from '@angular/material/datepicker';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatOption, MatSelect } from '@angular/material/select';
@@ -18,6 +19,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
 import { addDays, dateRange, startOfWeek } from '../../core/time/clinic-time';
 import { ClinicTime } from '../../core/time/clinic-time.service';
+import { dateTimeToKey, keyToDateTime } from '../../shared/date-key';
 import { StatusChip } from '../../shared/status-chip';
 import { AppointmentDrawer } from './appointment-drawer';
 
@@ -43,6 +45,8 @@ interface DayGroup {
     MatButtonToggle,
     MatFormField,
     MatLabel,
+    MatDatepicker,
+    MatDatepickerInput,
     MatSelect,
     MatOption,
     MatProgressBar,
@@ -157,7 +161,10 @@ export class Agenda {
     this.anchor.set(this.clinicTime.today());
   }
 
-  protected setAnchor(key: string): void {
+  protected readonly anchorDate = computed(() => keyToDateTime(this.anchor()));
+
+  protected setAnchor(date: unknown): void {
+    const key = dateTimeToKey(date);
     if (key) this.anchor.set(key);
   }
 

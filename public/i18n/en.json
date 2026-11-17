@@ -19,6 +19,14 @@
     "delete": "Delete"
   },
   "nav": {
+    "groups": {
+      "today": "Today",
+      "patients": "Patients",
+      "schedule": "Schedule",
+      "money": "Money",
+      "growth": "Growth",
+      "settings": "Settings"
+    },
     "label": "Main navigation",
     "menu": "Open menu",
     "agenda": "Agenda",

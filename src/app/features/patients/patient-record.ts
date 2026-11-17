@@ -95,7 +95,9 @@ const KIND_ICONS: Record<string, string> = {
               <mat-option value="">{{ 'records.theAccountHolder' | translate }}</mat-option>
               @for (m of detail()?.familyMembers ?? []; track m.id) {
                 <mat-option [value]="m.id"
-                  >{{ m.fullName }} ({{ 'family.relation.' + m.relation | translate }})</mat-option
+                  ><span dir="auto">{{ m.fullName }}</span> ({{
+                    'family.relation.' + m.relation | translate
+                  }})</mat-option
                 >
               }
             </mat-select>
@@ -165,12 +167,17 @@ const KIND_ICONS: Record<string, string> = {
                   <li>
                     <span class="when">{{ clinicTime.date(a.startsAt, a.timezone) }}</span>
                     <span class="what">
-                      {{ a.doctor.name }}
+                      <span dir="auto">{{ a.doctor.name }}</span>
                       @if (a.service) {
-                        <span class="muted">- {{ a.service.name }}</span>
+                        <span class="muted"
+                          >- <span dir="auto">{{ a.service.name }}</span></span
+                        >
                       }
                       @if (a.familyMember; as m) {
-                        <span class="muted">({{ m.fullName }})</span>
+                        <span class="muted"
+                          >(<span dir="auto">{{ m.fullName }}</span
+                          >)</span
+                        >
                       }
                     </span>
                     <app-status-chip [status]="a.status" />
@@ -195,7 +202,7 @@ const KIND_ICONS: Record<string, string> = {
                 <mat-icon class="kind" aria-hidden="true">{{ icon(r) }}</mat-icon>
                 <div class="content">
                   <div class="entry-head">
-                    <strong>{{ r.title }}</strong>
+                    <strong dir="auto">{{ r.title }}</strong>
                     <span class="pill info">{{ 'records.kinds.' + r.kind | translate }}</span>
                     <span
                       class="pill"
@@ -209,7 +216,7 @@ const KIND_ICONS: Record<string, string> = {
                     </span>
                   </div>
                   @if (r.body) {
-                    <p class="body">{{ r.body }}</p>
+                    <p class="body" dir="auto">{{ r.body }}</p>
                   }
                   @if (r.attachmentUrl) {
                     <button
@@ -226,7 +233,7 @@ const KIND_ICONS: Record<string, string> = {
                   <div class="muted small">
                     {{ clinicTime.date(r.createdAt) }}
                     @if (r.authorName || r.doctorName) {
-                      · {{ r.authorName || r.doctorName }}
+                      · <span dir="auto">{{ r.authorName || r.doctorName }}</span>
                     }
                   </div>
                 </div>

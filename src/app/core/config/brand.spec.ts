@@ -67,11 +67,21 @@ describe('brand generation', () => {
     for (const tone of TONES) expect(palette[tone]).toMatch(/^#[0-9A-F]{6}$/);
     expect(palette[0]).toBe('#000000');
     expect(palette[100]).toBe('#FFFFFF');
-    for (const name of ['secondary', 'neutral', 'neutral-variant']) {
-      expect(Object.keys(palette[name])).toHaveLength(TONES.length);
-    }
+    expect(Object.keys(palette['secondary'])).toHaveLength(TONES.length);
     // Lighter tones get lighter.
     expect(palette[90]).not.toBe(palette[10]);
+  });
+
+  it('generates every neutral tone Material 3 needs for surface-container tokens', () => {
+    const palette = paletteFor('#3F3CCF') as unknown as Record<string, Record<number, string>>;
+    const required = [...TONES, 4, 5, 6, 12, 15, 17, 22, 24, 87, 92, 94, 96];
+    for (const name of ['neutral', 'neutral-variant']) {
+      for (const tone of required) expect(palette[name][tone]).toMatch(/^#[0-9A-F]{6}$/);
+    }
+    const scss = renderScss(config);
+    for (const tone of [4, 6, 12, 17, 22, 24, 87, 92, 94, 96]) {
+      expect(scss).toMatch(new RegExp(`\\b${tone}: #[0-9A-F]{6},`));
+    }
   });
 
   it('emits Material palettes and CSS variables', () => {

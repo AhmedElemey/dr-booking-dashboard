@@ -12,7 +12,9 @@ export function validate(schema: object, value: unknown, root?: object, path?: s
 export function hueChroma(hex: string): { hue: number; chroma: number };
 export function toneColor(hue: number, chroma: number, tone: number): string;
 export const TONES: number[];
-export function tonalPalette(hue: number, chroma: number): Record<number, string>;
+export const NEUTRAL_EXTRA_TONES: number[];
+export const NEUTRAL_TONES: number[];
+export function tonalPalette(hue: number, chroma: number, tones?: number[]): Record<number, string>;
 export function paletteFor(seedHex: string): Record<string, unknown>;
 export function renderScss(config: ClinicConfig): string;
 export function renderTs(config: ClinicConfig): string;

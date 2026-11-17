@@ -110,8 +110,12 @@ export function toneColor(hue, chroma, tone) {
 
 export const TONES = [0, 10, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100];
 
-export function tonalPalette(hue, chroma) {
-  return Object.fromEntries(TONES.map((t) => [t, toneColor(hue, chroma, t)]));
+/** Extra neutral tones Material 3 needs for the `--mat-sys-surface-container*` tokens. */
+export const NEUTRAL_EXTRA_TONES = [4, 5, 6, 12, 15, 17, 22, 24, 87, 92, 94, 96];
+export const NEUTRAL_TONES = [...TONES, ...NEUTRAL_EXTRA_TONES].sort((a, b) => a - b);
+
+export function tonalPalette(hue, chroma, tones = TONES) {
+  return Object.fromEntries(tones.map((t) => [t, toneColor(hue, chroma, t)]));
 }
 
 /** Primary/tertiary palettes (as Material expects them) for a seed colour. */
@@ -120,8 +124,8 @@ export function paletteFor(seedHex) {
   return {
     ...tonalPalette(hue, Math.max(chroma, 36)),
     secondary: tonalPalette(hue, 16),
-    neutral: tonalPalette(hue, 4),
-    'neutral-variant': tonalPalette(hue, 8),
+    neutral: tonalPalette(hue, 4, NEUTRAL_TONES),
+    'neutral-variant': tonalPalette(hue, 8, NEUTRAL_TONES),
   };
 }
 
@@ -133,7 +137,9 @@ const BANNER =
 function scssMap(palette) {
   const tones = TONES.map((t) => `  ${t}: ${palette[t]},`).join('\n');
   const sub = (name) =>
-    `  ${name}: (\n${TONES.map((t) => `    ${t}: ${palette[name][t]},`).join('\n')}\n  ),`;
+    `  ${name}: (\n${Object.keys(palette[name])
+      .map((t) => `    ${t}: ${palette[name][t]},`)
+      .join('\n')}\n  ),`;
   return `(\n${tones}\n${sub('secondary')}\n${sub('neutral')}\n${sub('neutral-variant')}\n  error: map.get(mat.$azure-palette, error),\n)`;
 }
 

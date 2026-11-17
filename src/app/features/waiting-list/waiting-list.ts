@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -16,6 +15,7 @@ import { ToastService } from '../../core/http/toast.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
 import { ClinicTime } from '../../core/time/clinic-time.service';
+import { DateField } from '../../shared/date-field';
 
 const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled', 'Expired'];
 
@@ -23,11 +23,11 @@ const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled',
 @Component({
   selector: 'app-waiting-list',
   imports: [
+    DateField,
     FormsModule,
     MatButton,
     MatFormField,
     MatLabel,
-    MatInput,
     MatSelect,
     MatOption,
     MatIcon,
@@ -54,10 +54,12 @@ const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled',
             </mat-select>
           </mat-form-field>
         }
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'waitingList.date' | translate }}</mat-label>
-          <input matInput type="date" [ngModel]="date()" (ngModelChange)="date.set($event)" />
-        </mat-form-field>
+        <app-date-field
+          [label]="'waitingList.date' | translate"
+          subscriptSizing="dynamic"
+          [ngModel]="date()"
+          (ngModelChange)="date.set($event)"
+        />
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'agenda.status' | translate }}</mat-label>
           <mat-select [value]="status()" (selectionChange)="status.set($event.value)">

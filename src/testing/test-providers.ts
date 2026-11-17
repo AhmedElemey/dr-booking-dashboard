@@ -4,6 +4,7 @@ import {
   inject,
   provideEnvironmentInitializer,
 } from '@angular/core';
+import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { DateTime } from 'luxon';
 
@@ -13,12 +14,13 @@ import { applyBrand } from '../app/core/config/brand';
 import { LanguageService } from '../app/core/i18n/language.service';
 import { Clock } from '../app/core/time/clock';
 
-/** Translation providers loaded with the real ar/en files, starting in `lang`. */
+/** Translation (and date adapter) providers loaded with the real ar/en files, starting in `lang`. */
 export function provideTestTranslations(
   lang: 'ar' | 'en' = 'en',
 ): (Provider | EnvironmentProviders)[] {
   return [
     provideTranslateService({ fallbackLang: 'en' }),
+    provideLuxonDateAdapter(),
     provideEnvironmentInitializer(() => {
       const translate = inject(TranslateService);
       translate.setTranslation('en', applyBrand(en, 'en'));

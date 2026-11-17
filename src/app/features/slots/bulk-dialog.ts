@@ -26,6 +26,7 @@ import {
   validateBulk,
   validateRemoveRange,
 } from './bulk-slots';
+import { DateField } from '../../shared/date-field';
 
 export interface BulkDialogData {
   doctorId: string;
@@ -40,6 +41,7 @@ const LENGTHS = [15, 30, 45, 60, 90, 120, 180, 240];
 @Component({
   selector: 'app-bulk-dialog',
   imports: [
+    DateField,
     FormsModule,
     MatDialogModule,
     MatButton,

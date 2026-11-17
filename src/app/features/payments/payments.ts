@@ -11,7 +11,6 @@ import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -29,6 +28,7 @@ import { addDays } from '../../core/time/clinic-time';
 import { ClinicTime } from '../../core/time/clinic-time.service';
 import { egp } from '../../core/util/format';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
+import { DateField } from '../../shared/date-field';
 
 const STATUSES: PaymentRecordStatus[] = ['Pending', 'Paid', 'Failed', 'Refunded', 'Cancelled'];
 
@@ -36,11 +36,11 @@ const STATUSES: PaymentRecordStatus[] = ['Pending', 'Paid', 'Failed', 'Refunded'
 @Component({
   selector: 'app-payments',
   imports: [
+    DateField,
     FormsModule,
     MatButton,
     MatFormField,
     MatLabel,
-    MatInput,
     MatSelect,
     MatOption,
     MatIcon,
@@ -55,14 +55,18 @@ const STATUSES: PaymentRecordStatus[] = ['Pending', 'Paid', 'Failed', 'Refunded'
       </div>
 
       <div class="filters">
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'payments.from' | translate }}</mat-label>
-          <input matInput type="date" [ngModel]="from()" (ngModelChange)="from.set($event)" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'payments.to' | translate }}</mat-label>
-          <input matInput type="date" [ngModel]="to()" (ngModelChange)="to.set($event)" />
-        </mat-form-field>
+        <app-date-field
+          [label]="'payments.from' | translate"
+          subscriptSizing="dynamic"
+          [ngModel]="from()"
+          (ngModelChange)="from.set($event)"
+        />
+        <app-date-field
+          [label]="'payments.to' | translate"
+          subscriptSizing="dynamic"
+          [ngModel]="to()"
+          (ngModelChange)="to.set($event)"
+        />
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'agenda.status' | translate }}</mat-label>
           <mat-select [value]="status()" (selectionChange)="status.set($event.value)">

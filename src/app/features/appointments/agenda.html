@@ -16,7 +16,14 @@
       >
         <mat-icon class="mirror">chevron_left</mat-icon>
       </button>
-      <button mat-stroked-button type="button" [disabled]="isToday()" (click)="today()">
+      <button
+        mat-stroked-button
+        type="button"
+        class="today-button"
+        [class.selected]="isToday()"
+        [attr.aria-pressed]="isToday()"
+        (click)="today()"
+      >
         {{ 'agenda.today' | translate }}
       </button>
       <button
@@ -33,19 +40,19 @@
       mat-icon-button
       type="button"
       [attr.aria-label]="'agenda.pickDate' | translate"
-      (click)="datePicker.showPicker()"
+      (click)="datePicker.open()"
     >
       <mat-icon>edit_calendar</mat-icon>
     </button>
     <input
-      #datePicker
-      type="date"
       class="date-input"
       tabindex="-1"
       aria-hidden="true"
-      [ngModel]="anchor()"
-      (ngModelChange)="setAnchor($event)"
+      [matDatepicker]="datePicker"
+      [value]="anchorDate()"
+      (dateChange)="setAnchor($event.value)"
     />
+    <mat-datepicker #datePicker />
     <span class="spacer"></span>
     <mat-button-toggle-group
       [value]="view()"

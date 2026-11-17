@@ -4,7 +4,6 @@ import { MatButton } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -12,6 +11,7 @@ import { BulkSlotsResult } from '../../core/api/models';
 import { WorkingHoursTemplate } from '../../core/api/phase2.models';
 import { WorkingHoursApi } from '../../core/api/working-hours.api';
 import { addDays, diffDays } from '../../core/time/clinic-time';
+import { DateField } from '../../shared/date-field';
 
 export interface ApplyTemplateData {
   doctorId: string;
@@ -23,12 +23,12 @@ export interface ApplyTemplateData {
 @Component({
   selector: 'app-apply-template-dialog',
   imports: [
+    DateField,
     FormsModule,
     MatDialogModule,
     MatButton,
     MatFormField,
     MatLabel,
-    MatInput,
     MatSelect,
     MatOption,
     MatIcon,
@@ -69,24 +69,16 @@ export interface ApplyTemplateData {
             </mat-select>
           </mat-form-field>
           <div class="grid">
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'bulk.fromDate' | translate }}</mat-label>
-              <input
-                matInput
-                type="date"
-                [ngModel]="fromDate()"
-                (ngModelChange)="fromDate.set($event)"
-              />
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'bulk.toDate' | translate }}</mat-label>
-              <input
-                matInput
-                type="date"
-                [ngModel]="toDate()"
-                (ngModelChange)="toDate.set($event)"
-              />
-            </mat-form-field>
+            <app-date-field
+              [label]="'bulk.fromDate' | translate"
+              [ngModel]="fromDate()"
+              (ngModelChange)="fromDate.set($event)"
+            />
+            <app-date-field
+              [label]="'bulk.toDate' | translate"
+              [ngModel]="toDate()"
+              (ngModelChange)="toDate.set($event)"
+            />
           </div>
           @if (!rangeValid()) {
             <p class="error" role="alert">{{ 'applyTemplate.badRange' | translate }}</p>

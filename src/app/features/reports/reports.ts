@@ -10,7 +10,6 @@ import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -27,6 +26,7 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
 import { saveBlob } from '../../core/util/download';
 import { egp } from '../../core/util/format';
 import { BarChart, ChartSeries, HBarList } from '../../shared/charts';
+import { DateField } from '../../shared/date-field';
 
 export const MAX_REPORT_DAYS = 366;
 const GROUPS: GroupBy[] = ['Day', 'Week', 'Month'];
@@ -40,11 +40,11 @@ export function ratePercent(rate: number): number {
 @Component({
   selector: 'app-reports',
   imports: [
+    DateField,
     FormsModule,
     MatButton,
     MatFormField,
     MatLabel,
-    MatInput,
     MatSelect,
     MatOption,
     MatIcon,
@@ -61,14 +61,18 @@ export function ratePercent(rate: number): number {
       </div>
 
       <div class="filters">
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'payments.from' | translate }}</mat-label>
-          <input matInput type="date" [ngModel]="from()" (ngModelChange)="from.set($event)" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'payments.to' | translate }}</mat-label>
-          <input matInput type="date" [ngModel]="to()" (ngModelChange)="to.set($event)" />
-        </mat-form-field>
+        <app-date-field
+          [label]="'payments.from' | translate"
+          subscriptSizing="dynamic"
+          [ngModel]="from()"
+          (ngModelChange)="from.set($event)"
+        />
+        <app-date-field
+          [label]="'payments.to' | translate"
+          subscriptSizing="dynamic"
+          [ngModel]="to()"
+          (ngModelChange)="to.set($event)"
+        />
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'reports.groupBy' | translate }}</mat-label>
           <mat-select [value]="groupBy()" (selectionChange)="groupBy.set($event.value)">

@@ -18,11 +18,13 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
 import { ClinicTime } from '../../core/time/clinic-time.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog';
+import { DateField } from '../../shared/date-field';
 
 /** holidayCalendar: clinic closed days by year, Egyptian public-holiday import, conflict warning. */
 @Component({
   selector: 'app-holidays',
   imports: [
+    DateField,
     ReactiveFormsModule,
     MatButton,
     MatIconButton,
@@ -48,13 +50,11 @@ import { ConfirmDialog } from '../../shared/confirm-dialog';
       <form class="panel add" [formGroup]="form" (ngSubmit)="add()" novalidate>
         <h2>{{ 'holidays.add' | translate }}</h2>
         <div class="fields">
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>{{ 'holidays.date' | translate }}</mat-label>
-            <input matInput type="date" formControlName="date" />
-            @if (form.controls.date.hasError('required')) {
-              <mat-error>{{ 'validation.required' | translate }}</mat-error>
-            }
-          </mat-form-field>
+          <app-date-field
+            [label]="'holidays.date' | translate"
+            subscriptSizing="dynamic"
+            formControlName="date"
+          />
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>{{ 'holidays.nameAr' | translate }}</mat-label>
             <input matInput formControlName="nameAr" dir="rtl" maxlength="120" />

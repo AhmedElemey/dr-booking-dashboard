@@ -105,3 +105,9 @@ tbody tr {
     display: none;
   }
 }
+
+.today-button.selected {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  border-color: transparent;
+}

@@ -169,8 +169,12 @@ header {
     color: var(--ml-blocked);
     border-color: var(--ml-blocked);
   }
+  // Past slots: a neutral surface and dashed status-coloured border instead of fading,
+  // so the text keeps its contrast.
   &.past {
-    opacity: 0.55;
+    background: var(--mat-sys-surface-container);
+    color: var(--mat-sys-on-surface-variant);
+    border-style: dashed;
   }
   &:disabled {
     cursor: default;

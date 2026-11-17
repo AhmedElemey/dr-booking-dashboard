@@ -38,19 +38,19 @@ body {
   font-family: Roboto, 'Noto Sans Arabic', sans-serif;
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
-  --ml-confirmed: #1b6ef3;
+  --ml-confirmed: #1558c9;
   --ml-confirmed-bg: #e3edff;
-  --ml-completed: #1a7f45;
+  --ml-completed: #17703d;
   --ml-completed-bg: #dff3e6;
   --ml-noshow: #a15c00;
   --ml-noshow-bg: #fff0d6;
-  --ml-cancelled: #6b6f76;
+  --ml-cancelled: #4f5359;
   --ml-cancelled-bg: #ececef;
-  --ml-open: #1a7f45;
+  --ml-open: #17703d;
   --ml-open-bg: #e6f6ec;
-  --ml-reserved: #1b6ef3;
+  --ml-reserved: #1558c9;
   --ml-reserved-bg: #e3edff;
-  --ml-blocked: #6b6f76;
+  --ml-blocked: #4f5359;
   --ml-blocked-bg: #ececef;
 }
 
@@ -230,7 +230,7 @@ html[lang='ar'] body {
   padding-block: 2px;
   padding-inline: 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   background: var(--ml-cancelled-bg);

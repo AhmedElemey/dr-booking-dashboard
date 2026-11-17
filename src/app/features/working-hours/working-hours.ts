@@ -51,7 +51,7 @@ import { TemplateDialog } from './template-dialog';
                 @for (t of templates(); track t.id) {
                   <tr>
                     <td>
-                      <strong>{{ t.name }}</strong>
+                      <strong dir="auto">{{ t.name }}</strong>
                     </td>
                     <td class="num">{{ t.slotMinutes }} {{ 'common.min' | translate }}</td>
                     <td>

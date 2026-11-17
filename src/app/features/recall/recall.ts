@@ -264,7 +264,7 @@ export class CampaignDialog {
               <tbody>
                 @for (s of p.sample; track s.phone) {
                   <tr>
-                    <td>{{ s.name }}</td>
+                    <td dir="auto">{{ s.name }}</td>
                     <td>
                       <span class="ltr-text">{{ s.phone }}</span>
                     </td>
@@ -338,7 +338,7 @@ export class RecallPreviewDialog {
                     {{ clinicTime.date(s.sentAt) }}
                     <span class="ltr-text muted">{{ clinicTime.time(s.sentAt) }}</span>
                   </td>
-                  <td>{{ s.patientName || '-' }}</td>
+                  <td dir="auto">{{ s.patientName || '-' }}</td>
                   <td>{{ 'recall.channels.' + s.channel | translate }}</td>
                   <td>
                     <span class="pill" [class]="'pill ' + tone(s)">{{
@@ -460,7 +460,7 @@ export class RecallSendsDialog {
                 @for (c of campaigns(); track c.id) {
                   <tr [class.inactive]="!c.isActive">
                     <td>
-                      <strong>{{ c.name }}</strong>
+                      <strong dir="auto">{{ c.name }}</strong>
                     </td>
                     <td>{{ 'recall.channels.' + c.channel | translate }}</td>
                     <td class="num">{{ c.monthsSinceLastVisit }}</td>

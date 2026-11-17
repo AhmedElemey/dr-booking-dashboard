@@ -62,7 +62,8 @@ export interface ApplyTemplateData {
             <mat-select [value]="templateId()" (selectionChange)="templateId.set($event.value)">
               @for (t of templates(); track t.id) {
                 <mat-option [value]="t.id"
-                  >{{ t.name }} ({{ t.slotMinutes }} {{ 'common.min' | translate }})</mat-option
+                  ><span dir="auto">{{ t.name }}</span> ({{ t.slotMinutes }}
+                  {{ 'common.min' | translate }})</mat-option
                 >
               }
             </mat-select>

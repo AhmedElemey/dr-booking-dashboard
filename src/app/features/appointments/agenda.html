@@ -133,12 +133,12 @@
                     {{ clinicTime.time(a.startsAt, a.timezone) }}
                   </button>
                 </td>
-                <td>{{ a.patient.fullName || '-' }}</td>
+                <td dir="auto">{{ a.patient.fullName || '-' }}</td>
                 <td>
                   <span class="ltr-text">{{ a.patient.phone }}</span>
                 </td>
-                <td>{{ a.doctor.name }}</td>
-                <td>{{ a.service?.name || '-' }}</td>
+                <td dir="auto">{{ a.doctor.name }}</td>
+                <td dir="auto">{{ a.service?.name || '-' }}</td>
                 <td><app-status-chip [status]="a.status" /></td>
               </tr>
             }

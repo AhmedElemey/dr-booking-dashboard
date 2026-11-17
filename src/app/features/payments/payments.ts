@@ -121,8 +121,8 @@ const STATUSES: PaymentRecordStatus[] = ['Pending', 'Paid', 'Failed', 'Refunded'
                         clinicTime.time(p.paidAt || p.createdAt)
                       }}</span>
                     </td>
-                    <td>{{ p.patient?.fullName || '-' }}</td>
-                    <td>{{ p.doctor?.name || '-' }}</td>
+                    <td dir="auto">{{ p.patient?.fullName || '-' }}</td>
+                    <td dir="auto">{{ p.doctor?.name || '-' }}</td>
                     <td>{{ 'payments.method.' + p.method | translate }}</td>
                     <td class="num">{{ amount(p.amountEgp) }} {{ 'common.egp' | translate }}</td>
                     <td>

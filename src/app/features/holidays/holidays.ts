@@ -85,7 +85,8 @@ import { ConfirmDialog } from '../../shared/confirm-dialog';
               @for (a of c.list; track a.id) {
                 <li>
                   <span class="ltr-text">{{ clinicTime.time(a.startsAt, a.timezone) }}</span>
-                  · {{ a.patient.fullName || a.patient.phone }} · {{ a.doctor.name }}
+                  · <span dir="auto">{{ a.patient.fullName || a.patient.phone }}</span> ·
+                  <span dir="auto">{{ a.doctor.name }}</span>
                 </li>
               }
             </ul>

@@ -214,7 +214,7 @@ export class BarChart {
     <ul>
       @for (row of rows(); track row.name) {
         <li>
-          <span class="name">{{ row.name }}</span>
+          <span class="name" dir="auto">{{ row.name }}</span>
           <span class="track" aria-hidden="true">
             @for (v of row.values; track $index) {
               <span

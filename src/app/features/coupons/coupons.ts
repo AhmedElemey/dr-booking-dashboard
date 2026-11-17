@@ -44,7 +44,7 @@ import { CouponDialog } from './coupon-dialog';
               @for (r of rows(); track r.appointmentId) {
                 <tr>
                   <td>{{ clinicTime.date(r.createdAt) }}</td>
-                  <td>{{ r.patientName || '-' }}</td>
+                  <td dir="auto">{{ r.patientName || '-' }}</td>
                   <td class="num">{{ amount(r.discountEgp) }} {{ 'common.egp' | translate }}</td>
                 </tr>
               }

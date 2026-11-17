@@ -74,7 +74,7 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
                 @for (p of result().items; track p.id) {
                   <tr>
                     <td>
-                      <a class="name" [routerLink]="['/patients', p.id]">{{
+                      <a class="name" dir="auto" [routerLink]="['/patients', p.id]">{{
                         p.fullName || p.phone
                       }}</a>
                     </td>

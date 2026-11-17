@@ -50,7 +50,7 @@
       </button>
       <mat-menu #userMenu="matMenu">
         <div class="menu-head">
-          <strong>{{ auth.user()?.fullName }}</strong>
+          <strong dir="auto">{{ auth.user()?.fullName }}</strong>
           <span class="muted">{{ 'roles.' + auth.role() | translate }}</span>
         </div>
         <a mat-menu-item routerLink="/account">

@@ -100,7 +100,7 @@ const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled',
                 @for (e of entries(); track e.id) {
                   <tr>
                     <td>
-                      {{ e.patient.fullName || '-' }}
+                      <span dir="auto">{{ e.patient.fullName || '-' }}</span>
                       @if (e.familyMember; as m) {
                         <div class="muted small">
                           {{ 'waitingList.forMember' | translate: { name: m.fullName } }}
@@ -110,7 +110,7 @@ const STATUSES: WaitingStatus[] = ['Waiting', 'Notified', 'Booked', 'Cancelled',
                     <td>
                       <span class="ltr-text">{{ e.patient.phone }}</span>
                     </td>
-                    <td>{{ e.doctor.name }}</td>
+                    <td dir="auto">{{ e.doctor.name }}</td>
                     <td>{{ clinicTime.keyLabel(e.date, 'ccc d LLL yyyy') }}</td>
                     <td>
                       <span class="pill" [class]="'pill ' + tone(e.status)">{{

@@ -92,7 +92,7 @@ const CHANNELS: MessageChannel[] = ['Push', 'Sms', 'WhatsApp'];
                       <span class="ltr-text">{{ m.to }}</span>
                     </td>
                     <td>{{ kindLabel(m.kind) }}</td>
-                    <td class="body">{{ m.body }}</td>
+                    <td class="body" dir="auto">{{ m.body }}</td>
                     <td>
                       <span
                         class="pill"

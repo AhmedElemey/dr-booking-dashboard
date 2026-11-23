@@ -345,7 +345,8 @@
       "nonexistent": "That local time does not exist on this date (clock change)."
     },
     "loadError": "Couldn't load the slots. Check the connection and try again.",
-    "retry": "Retry"  },
+    "retry": "Retry"
+  },
   "bulk": {
     "title": "Bulk slots",
     "tabAdd": "Add slots",

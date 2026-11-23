@@ -202,6 +202,7 @@ export class SlotCalendar {
       },
     });
   }
+
   protected reload(): void {
     const doctorId = this.selectedDoctorId();
     if (!doctorId) return;

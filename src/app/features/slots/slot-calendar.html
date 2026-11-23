@@ -79,6 +79,15 @@
     @if (loading()) {
       <mat-progress-bar mode="indeterminate" />
     }
+    @if (loadError()) {
+      <div class="load-error" role="alert">
+        <mat-icon aria-hidden="true">error_outline</mat-icon>
+        <p>{{ 'slots.loadError' | translate }}</p>
+        <button mat-stroked-button type="button" (click)="reload()">
+          {{ 'slots.retry' | translate }}
+        </button>
+      </div>
+    } @else {
     <div class="columns" [class.single]="view() === 'day'">
       @for (col of columns(); track col.key) {
         <div class="column" [class.today]="col.key === clinicTime.today()">
@@ -142,6 +151,7 @@
         </div>
       }
     </div>
+    }
   </section>
 
   <mat-menu #slotMenu="matMenu">

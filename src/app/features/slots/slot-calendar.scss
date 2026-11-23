@@ -195,6 +195,16 @@ header {
   padding-block: 12px;
 }
 
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--mat-sys-error);
+}
+
 .menu-head {
   padding-block: 8px;
   padding-inline: 16px;

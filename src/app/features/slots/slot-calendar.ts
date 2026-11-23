@@ -89,6 +89,8 @@ export class SlotCalendar {
   protected readonly anchor = signal(this.clinicTime.today());
   protected readonly slots = signal<Slot[]>([]);
   protected readonly loading = signal(false);
+  /** True when the slots request kept failing after all retries; the panel shows an error with retry instead of an empty week. */
+  protected readonly loadError = signal(false);
   private readonly holidays = signal<Holiday[]>([]);
   protected readonly drawerAppointmentId = signal<string | null>(null);
 
@@ -164,17 +166,42 @@ export class SlotCalendar {
     });
   }
 
-  private load(doctorId: string, from: string, to: string): void {
+  /** The free demo host sleeps when idle and can take up to a minute to wake, so retry before giving up. */
+  private static readonly retryDelaysMs = [3000, 8000, 20000, 30000];
+  private loadSeq = 0;
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private load(doctorId: string, from: string, to: string, attempt = 0): void {
+    const seq = ++this.loadSeq;
+    if (attempt === 0) {
+      this.loadError.set(false);
+      if (this.retryTimer) {
+        clearTimeout(this.retryTimer);
+        this.retryTimer = null;
+      }
+    }
     this.loading.set(true);
     this.api.slots(doctorId, { from, to }).subscribe({
       next: (slots) => {
+        if (seq !== this.loadSeq) return;
         this.slots.set(slots);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        if (seq !== this.loadSeq) return;
+        if (attempt < SlotCalendar.retryDelaysMs.length) {
+          this.retryTimer = setTimeout(
+            () => this.load(doctorId, from, to, attempt + 1),
+            SlotCalendar.retryDelaysMs[attempt],
+          );
+          return;
+        }
+        this.slots.set([]);
+        this.loading.set(false);
+        this.loadError.set(true);
+      },
     });
   }
-
   protected reload(): void {
     const doctorId = this.selectedDoctorId();
     if (!doctorId) return;

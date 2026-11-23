@@ -343,8 +343,9 @@
       "misaligned": "Start time and length must be multiples of 15 minutes.",
       "past": "The slot must be in the future.",
       "nonexistent": "That local time does not exist on this date (clock change)."
-    }
-  },
+    },
+    "loadError": "Couldn't load the slots. Check the connection and try again.",
+    "retry": "Retry"  },
   "bulk": {
     "title": "Bulk slots",
     "tabAdd": "Add slots",

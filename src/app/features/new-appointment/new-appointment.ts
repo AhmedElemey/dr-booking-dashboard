@@ -23,6 +23,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
 import { addDays } from '../../core/time/clinic-time';
 import { ClinicTime } from '../../core/time/clinic-time.service';
+import { Clock } from '../../core/time/clock';
 import { egyptPhoneValidator, normalizeEgyptPhone } from '../../core/validators/phone';
 import { SlotPicker } from '../../shared/slot-picker';
 
@@ -57,6 +58,7 @@ export class NewAppointment {
   private readonly appointmentsApi = inject(AppointmentsApi);
   private readonly doctorsApi = inject(DoctorsApi);
   private readonly languages = inject(LanguageService);
+  private readonly clock = inject(Clock);
   protected readonly features = inject(FeaturesService);
   protected readonly clinicTime = inject(ClinicTime);
 
@@ -122,7 +124,9 @@ export class NewAppointment {
     this.doctorsApi
       .slots(doctorId, { from: today, to: addDays(today, LOOKAHEAD_DAYS - 1), status: 'Open' })
       .subscribe((slots) => {
-        this.openSlots.set(slots);
+        // Like the public site, hide slots whose start time has already passed.
+        const nowMs = this.clock.now().toMillis();
+        this.openSlots.set(slots.filter((s) => Date.parse(s.startsAt) > nowMs));
         this.slotsLoaded.set(true);
       });
   }

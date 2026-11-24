@@ -65,6 +65,7 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
                   <th scope="col">{{ 'agenda.col.phone' | translate }}</th>
                   <th scope="col">{{ 'patients.lastVisit' | translate }}</th>
                   <th scope="col">{{ 'patients.visits' | translate }}</th>
+                  <th scope="col">{{ 'patients.noShows' | translate }}</th>
                   <th scope="col">
                     <span class="sr-only">{{ 'common.actions' | translate }}</span>
                   </th>
@@ -86,6 +87,9 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
                     </td>
                     <td class="num" [attr.data-label]="'patients.visits' | translate">
                       {{ p.appointmentsCount }}
+                    </td>
+                    <td class="num" [attr.data-label]="'patients.noShows' | translate">
+                      {{ p.noShowCount }}
                     </td>
                     <td class="end">
                       <a mat-stroked-button [routerLink]="['/patients', p.id]">

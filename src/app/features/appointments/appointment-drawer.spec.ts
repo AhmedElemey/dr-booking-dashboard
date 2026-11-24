@@ -95,7 +95,6 @@ describe('AppointmentDrawer', () => {
     expect(el.textContent).toContain(en.drawer.final);
   });
 
-<<<<<<< hamada14/pending-approval-ui
   it('a pending booking offers approve and reject only', async () => {
     const { buttons } = await open('2026-11-02T08:00:00', appointment({ status: 'Pending' }));
     const text = buttons().join('|');
@@ -145,13 +144,18 @@ describe('AppointmentDrawer', () => {
     expect(req.request.body).toEqual({ reason: 'Doctor is on leave' });
     req.flush(appointment({ status: 'Cancelled', cancelledBy: 'Clinic' }));
     backend.expectOne(`${API_ROOT}/dashboard/appointments/a1`).flush(
-      appointment({ status: 'Cancelled', cancelledBy: 'Clinic', cancelReason: 'Doctor is on leave' }),
+      appointment({
+        status: 'Cancelled',
+        cancelledBy: 'Clinic',
+        cancelReason: 'Doctor is on leave',
+      }),
     );
     await fixture.whenStable();
     fixture.detectChanges();
     expect(host.changes()).toBe(1);
     expect(el.textContent).toContain(en.status.Cancelled);
-=======
+  });
+
   it('a recently completed visit offers a correction to no-show with a reason', async () => {
     const { fixture, el, buttons } = await open(
       '2026-11-02T10:00:00',
@@ -179,7 +183,6 @@ describe('AppointmentDrawer', () => {
       .expectOne(`${API_ROOT}/dashboard/appointments/a1`)
       .flush(appointment({ status: 'NoShow' }));
     await fixture.whenStable();
->>>>>>> main
   });
 
   it('cancels with a reason via the clinic endpoint', async () => {

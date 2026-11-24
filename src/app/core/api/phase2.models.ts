@@ -129,6 +129,8 @@ export interface PatientRow {
   phone: string;
   lastVisitAt?: string | null;
   appointmentsCount: number;
+  /** Q4: how often the patient did not show up (the clinic sees this; there is no booking block). */
+  noShowCount: number;
 }
 
 export interface FamilyMember {
@@ -190,6 +192,8 @@ export interface PatientAppointment {
 
 export interface PatientDetail {
   patient: { id: string; fullName: string | null; phone: string };
+  /** Q4: how often the patient did not show up. */
+  noShowCount: number;
   familyMembers: FamilyMember[];
   medicalInfo: MedicalInfo | null;
   appointments: PatientAppointment[];

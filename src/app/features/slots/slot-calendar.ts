@@ -1,6 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  OnDestroy,
   computed,
   effect,
   inject,
@@ -67,7 +69,7 @@ const STATUSES: SlotStatus[] = ['Open', 'Reserved', 'Blocked'];
   templateUrl: './slot-calendar.html',
   styleUrl: './slot-calendar.scss',
 })
-export class SlotCalendar {
+export class SlotCalendar implements OnDestroy {
   private readonly api = inject(DoctorsApi);
   private readonly dialog = inject(MatDialog);
   private readonly toast = inject(ToastService);
@@ -91,6 +93,8 @@ export class SlotCalendar {
   protected readonly loading = signal(false);
   /** True when the slots request kept failing after all retries; the panel shows an error with retry instead of an empty week. */
   protected readonly loadError = signal(false);
+  /** True while a retry is scheduled after a failed load; the page shows a server-waking note. */
+  protected readonly retrying = signal(false);
   private readonly holidays = signal<Holiday[]>([]);
   protected readonly drawerAppointmentId = signal<string | null>(null);
 
@@ -168,6 +172,8 @@ export class SlotCalendar {
 
   /** The free demo host sleeps when idle and can take up to a minute to wake, so retry before giving up. */
   private static readonly retryDelaysMs = [3000, 8000, 20000, 30000];
+  /** Retry only when the host is unreachable or waking; any 4xx is a real answer. */
+  private static readonly retryableStatuses = new Set([0, 502, 503, 504]);
   private loadSeq = 0;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -175,21 +181,29 @@ export class SlotCalendar {
     const seq = ++this.loadSeq;
     if (attempt === 0) {
       this.loadError.set(false);
+      this.retrying.set(false);
+      this.slots.set([]);
       if (this.retryTimer) {
         clearTimeout(this.retryTimer);
         this.retryTimer = null;
       }
     }
     this.loading.set(true);
-    this.api.slots(doctorId, { from, to }).subscribe({
+    this.api.slots(doctorId, { from, to }, { skipErrorToast: true }).subscribe({
       next: (slots) => {
         if (seq !== this.loadSeq) return;
         this.slots.set(slots);
         this.loading.set(false);
+        this.retrying.set(false);
       },
-      error: () => {
+      error: (error: unknown) => {
         if (seq !== this.loadSeq) return;
-        if (attempt < SlotCalendar.retryDelaysMs.length) {
+        const status = error instanceof HttpErrorResponse ? error.status : 0;
+        if (
+          SlotCalendar.retryableStatuses.has(status) &&
+          attempt < SlotCalendar.retryDelaysMs.length
+        ) {
+          this.retrying.set(true);
           this.retryTimer = setTimeout(
             () => this.load(doctorId, from, to, attempt + 1),
             SlotCalendar.retryDelaysMs[attempt],
@@ -198,9 +212,18 @@ export class SlotCalendar {
         }
         this.slots.set([]);
         this.loading.set(false);
+        this.retrying.set(false);
         this.loadError.set(true);
       },
     });
+  }
+
+  ngOnDestroy(): void {
+    this.loadSeq++;
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
   }
 
   protected reload(): void {

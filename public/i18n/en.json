@@ -75,6 +75,7 @@
     "fri": "Friday"
   },
   "login": {
+    "demoBanner": "Demo environment - everything shown here is synthetic test data.",
     "subtitle": "Sign in to manage your clinic",
     "phone": "Mobile number",
     "phoneHint": "Egyptian mobile, e.g. 010 1234 5678",

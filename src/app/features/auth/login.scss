@@ -75,3 +75,14 @@ mat-form-field {
   display: flex;
   justify-content: space-between;
 }
+
+
+.demo-banner {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  font-size: 13px;
+  text-align: center;
+}

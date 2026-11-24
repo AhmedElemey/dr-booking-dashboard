@@ -401,6 +401,7 @@
     "timezone": "Time zone",
     "timezoneHint": "All appointment and slot times are shown in this time zone.",
     "showPrices": "Show prices on the website and app",
+    "pricesLocked": "This feature is locked by the platform. Prices stay hidden until the platform enables public prices for this clinic.",
     "saved": "Clinic saved"
   },
   "admin": {

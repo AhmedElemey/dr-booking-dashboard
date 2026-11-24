@@ -1,8 +1,9 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { apiUrl } from '../config/api-url';
+import { SKIP_ERROR_TOAST } from '../http/http-context';
 import {
   BulkSlotsRequest,
   BulkSlotsResult,
@@ -67,10 +68,12 @@ export class DoctorsApi {
 
   // ---- slots ----
 
-  slots(doctorId: string, query: SlotQuery): Observable<Slot[]> {
+  slots(doctorId: string, query: SlotQuery, opts?: { skipErrorToast?: boolean }): Observable<Slot[]> {
     let params = new HttpParams().set('from', query.from).set('to', query.to);
     if (query.status) params = params.set('status', query.status);
-    return this.http.get<Slot[]>(`${this.base(doctorId)}/slots`, { params });
+    const context = new HttpContext();
+    if (opts?.skipErrorToast) context.set(SKIP_ERROR_TOAST, true);
+    return this.http.get<Slot[]>(`${this.base(doctorId)}/slots`, { params, context });
   }
 
   createSlot(doctorId: string, body: CreateSlotRequest): Observable<Slot> {

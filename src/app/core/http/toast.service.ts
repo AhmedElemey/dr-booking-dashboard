@@ -8,6 +8,7 @@ import {
   errorCode,
   errorMessageKey,
   problemOf,
+  transitionDetailKey,
   validationMessages,
 } from './error-codes';
 
@@ -42,10 +43,19 @@ export class ToastService {
       return;
     }
     if (code === 'INVALID_TRANSITION') {
-      // The API says why (for example "The visit has not started yet."), which beats the generic text.
+      // The API says why (for example "The visit has not started yet."). Known reasons are shown
+      // in the UI language; any other reason is shown as the API wrote it.
       const detail = problemOf(error)?.detail;
       if (typeof detail === 'string' && detail.trim().length > 0) {
-        this.open(detail, 'toast-error');
+        const known = transitionDetailKey(detail);
+        if (known) {
+          const params = known.status
+            ? { status: this.translate.instant(`status.${known.status}`) }
+            : undefined;
+          this.open(this.translate.instant(known.key, params), 'toast-error');
+        } else {
+          this.open(detail, 'toast-error');
+        }
         return;
       }
     }

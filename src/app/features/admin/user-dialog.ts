@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
@@ -25,6 +26,7 @@ export interface UserDialogData {
     ReactiveFormsModule,
     MatDialogModule,
     MatButton,
+    MatCheckbox,
     MatFormField,
     MatLabel,
     MatHint,
@@ -71,6 +73,11 @@ export interface UserDialogData {
             }
           </mat-form-field>
 
+          @if (form.controls.role.value === 'ClinicStaff') {
+            <mat-checkbox formControlName="isAdmin" class="full">
+              {{ 'admin.clinicAdmin' | translate }}
+            </mat-checkbox>
+          }
           @if (form.controls.role.value === 'Doctor') {
             <mat-form-field appearance="outline">
               <mat-label>{{ 'doctors.nameAr' | translate }}</mat-label>
@@ -133,6 +140,7 @@ export class UserDialog {
     nameAr: [''],
     nameEn: [''],
     specialtyId: [''],
+    isAdmin: [false],
   });
 
   constructor() {
@@ -166,7 +174,7 @@ export class UserDialog {
         role: v.role,
         ...(v.role === 'Doctor'
           ? { nameAr: v.nameAr.trim(), nameEn: v.nameEn.trim(), specialtyId: v.specialtyId }
-          : {}),
+          : { isAdmin: v.isAdmin }),
       })
       .subscribe({
         next: (user) => this.ref.close(user),

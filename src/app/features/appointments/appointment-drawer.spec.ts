@@ -77,10 +77,39 @@ describe('AppointmentDrawer', () => {
     expect(text).not.toContain(en.drawer.cancel + '|');
   });
 
-  it('shows no actions for a terminal appointment', async () => {
-    const { el, buttons } = await open('2026-11-02T10:00:00', appointment({ status: 'Completed' }));
+  it('shows no actions for a terminal appointment older than 24 hours', async () => {
+    const { el, buttons } = await open('2026-11-04T10:00:00', appointment({ status: 'Completed' }));
     expect(buttons()).toEqual([]);
     expect(el.textContent).toContain(en.drawer.final);
+  });
+
+  it('a recently completed visit offers a correction to no-show with a reason', async () => {
+    const { fixture, el, buttons } = await open(
+      '2026-11-02T10:00:00',
+      appointment({ status: 'Completed' }),
+    );
+    expect(buttons().join('|')).toContain(en.drawer.correctToNoShow);
+
+    const correctBtn = [...el.querySelectorAll<HTMLButtonElement>('.actions button')].find((b) =>
+      b.textContent!.includes(en.drawer.correctToNoShow),
+    )!;
+    correctBtn.click();
+    fixture.detectChanges();
+    const textarea = el.querySelector('textarea')!;
+    textarea.value = 'Patient arrived late';
+    textarea.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    [...el.querySelectorAll<HTMLButtonElement>('.row button')]
+      .find((b) => b.textContent!.includes(en.drawer.correctConfirm))!
+      .click();
+
+    const req = backend.expectOne(`${API_ROOT}/dashboard/appointments/a1/correct-status`);
+    expect(req.request.body).toEqual({ toStatus: 'NoShow', reason: 'Patient arrived late' });
+    req.flush(appointment({ status: 'NoShow' }));
+    backend.expectOne(`${API_ROOT}/dashboard/appointments/a1`).flush(
+      appointment({ status: 'NoShow' }),
+    );
+    await fixture.whenStable();
   });
 
   it('cancels with a reason via the clinic endpoint', async () => {

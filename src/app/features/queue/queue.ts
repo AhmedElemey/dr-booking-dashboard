@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
+import { interval } from 'rxjs';
 
 import { AppointmentsApi } from '../../core/api/appointments.api';
 import { DoctorsApi } from '../../core/api/doctors.api';
@@ -13,8 +15,13 @@ import { DashboardQueueEntry } from '../../core/api/phase2.models';
 import { ToastService } from '../../core/http/toast.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
+import { Clock } from '../../core/time/clock';
 import { ClinicTime } from '../../core/time/clinic-time.service';
 import { StatusChip } from '../../shared/status-chip';
+import { availableActions } from '../appointments/appointment-actions';
+
+/** The queue reloads by itself this often (ms) so it stays current without pressing refresh. */
+export const QUEUE_REFRESH_MS = 30_000;
 
 /** liveQueue: today's queue - with the doctor, checked-in by arrival, then upcoming. */
 @Component({
@@ -106,7 +113,9 @@ import { StatusChip } from '../../shared/status-chip';
                     </td>
                     <td [attr.data-label]="'queue.col.checkedIn' | translate">
                       @if (e.appointment.checkedInAt) {
-                        <span class="ltr-text">{{ clinicTime.time(e.appointment.checkedInAt) }}</span>
+                        <span class="ltr-text">{{
+                          clinicTime.time(e.appointment.checkedInAt)
+                        }}</span>
                       } @else {
                         <span class="muted">-</span>
                       }
@@ -142,6 +151,16 @@ import { StatusChip } from '../../shared/status-chip';
                           <mat-icon>check_circle</mat-icon>{{ 'queue.complete' | translate }}
                         </button>
                       }
+                      @if (canNoShow(e)) {
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          [disabled]="busyId() === e.appointment.id"
+                          (click)="noShow(e)"
+                        >
+                          <mat-icon>person_off</mat-icon>{{ 'queue.noShow' | translate }}
+                        </button>
+                      }
                     </td>
                   </tr>
                 }
@@ -166,6 +185,7 @@ export class Queue {
   private readonly doctorsApi = inject(DoctorsApi);
   private readonly toast = inject(ToastService);
   private readonly languages = inject(LanguageService);
+  private readonly clock = inject(Clock);
   protected readonly clinicTime = inject(ClinicTime);
 
   protected readonly doctors = signal<Doctor[]>([]);
@@ -180,10 +200,14 @@ export class Queue {
       const doctorId = this.doctorId();
       this.load(doctorId);
     });
+    // Refresh in the background: no progress bar, and a failed refresh keeps the list on screen.
+    interval(QUEUE_REFRESH_MS)
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.load(this.doctorId(), true));
   }
 
-  protected load(doctorId = this.doctorId()): void {
-    this.loading.set(true);
+  protected load(doctorId = this.doctorId(), background = false): void {
+    if (!background) this.loading.set(true);
     this.api.queue(doctorId || undefined).subscribe({
       next: (entries) => {
         this.entries.set(entries);
@@ -191,6 +215,12 @@ export class Queue {
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  /** "Didn't attend": a checked-in visit, or a confirmed one whose time has come. */
+  protected canNoShow(entry: DashboardQueueEntry): boolean {
+    const { status, startsAt } = entry.appointment;
+    return availableActions(status, startsAt, this.clock.now()).noShow;
   }
 
   protected doctorName(d: Doctor): string {
@@ -209,9 +239,13 @@ export class Queue {
     this.act(entry, 'complete', 'queue.completed');
   }
 
+  protected noShow(entry: DashboardQueueEntry): void {
+    this.act(entry, 'noShow', 'queue.noShowDone');
+  }
+
   private act(
     entry: DashboardQueueEntry,
-    action: 'checkIn' | 'start' | 'complete',
+    action: 'checkIn' | 'start' | 'complete' | 'noShow',
     toastKey: string,
   ): void {
     const id = entry.appointment.id;

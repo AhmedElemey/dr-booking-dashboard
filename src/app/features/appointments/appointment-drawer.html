@@ -220,6 +220,29 @@
           </div>
         </section>
       }
+      @case ('reject') {
+        <section class="sub" aria-live="polite">
+          <h3>{{ 'drawer.rejectTitle' | translate }}</h3>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'drawer.reason' | translate }}</mat-label>
+            <textarea matInput rows="3" maxlength="500" [(ngModel)]="rejectReason"></textarea>
+          </mat-form-field>
+          <div class="row">
+            <button mat-button type="button" (click)="back()" [disabled]="busy()">
+              {{ 'common.back' | translate }}
+            </button>
+            <button
+              mat-flat-button
+              type="button"
+              class="danger"
+              (click)="submitReject()"
+              [disabled]="busy()"
+            >
+              {{ 'drawer.confirmReject' | translate }}
+            </button>
+          </div>
+        </section>
+      }
       @case ('reschedule') {
         <section class="sub" aria-live="polite">
           <h3>{{ 'drawer.rescheduleTitle' | translate }}</h3>
@@ -247,6 +270,28 @@
         @if (actions(); as actions) {
           @if (hasAnyAction()) {
             <div class="actions">
+              @if (actions.approve) {
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="complete"
+                  [disabled]="busy()"
+                  (click)="approve()"
+                >
+                  <mat-icon>check_circle</mat-icon>{{ 'drawer.approve' | translate }}
+                </button>
+              }
+              @if (actions.reject) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="danger-outline"
+                  [disabled]="busy()"
+                  (click)="startReject()"
+                >
+                  <mat-icon>close</mat-icon>{{ 'drawer.reject' | translate }}
+                </button>
+              }
               @if (actions.complete) {
                 <button
                   mat-flat-button

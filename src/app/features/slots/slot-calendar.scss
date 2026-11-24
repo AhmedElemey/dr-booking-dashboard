@@ -195,6 +195,23 @@ header {
   padding-block: 12px;
 }
 
+.waking-note {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+}
+
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--mat-sys-error);
+}
+
 .menu-head {
   padding-block: 8px;
   padding-inline: 16px;

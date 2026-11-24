@@ -62,6 +62,36 @@ describe('errorInterceptor', () => {
     expect(open.mock.calls[0][0]).toBe('The visit has not started yet.');
   });
 
+  function flushTransition(detail: string): void {
+    http.get(`${API_ROOT}/x`).subscribe({ error: () => undefined });
+    backend
+      .expectOne(`${API_ROOT}/x`)
+      .flush(
+        { status: 409, code: 'INVALID_TRANSITION', detail },
+        { status: 409, statusText: 'err' },
+      );
+  }
+
+  it('shows a known INVALID_TRANSITION detail in Arabic when the UI language is Arabic', () => {
+    translate.use('ar');
+    flushTransition('The visit has not started yet.');
+    expect(open.mock.calls[0][0]).toBe(ar.transitionDetail.notStarted);
+  });
+
+  it('localizes "already <status>" details with the translated status', () => {
+    translate.use('ar');
+    flushTransition('The appointment is already Cancelled.');
+    expect(open.mock.calls[0][0]).toBe(
+      ar.transitionDetail.alreadyStatus.replace('{{status}}', ar.status.Cancelled),
+    );
+  });
+
+  it('shows an unknown INVALID_TRANSITION detail as the API wrote it', () => {
+    translate.use('ar');
+    flushTransition('Something the dashboard has no text for.');
+    expect(open.mock.calls[0][0]).toBe('Something the dashboard has no text for.');
+  });
+
   it('shows Arabic messages when the UI language is Arabic', () => {
     translate.use('ar');
     fail('SLOT_TAKEN', 409);

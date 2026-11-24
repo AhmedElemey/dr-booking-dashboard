@@ -130,8 +130,18 @@ export class AppointmentDrawer implements OnInit {
 
   /** Refunds are for clinic staff only: the API answers 403 to a doctor. */
   protected readonly canRefund = computed(
-    () => this.auth.role() === 'ClinicStaff' && this.appointment()?.paymentStatus === 'Paid',
+    () =>
+      this.auth.role() === 'ClinicStaff' &&
+      ['Paid', 'DepositPaid'].includes(this.appointment()?.paymentStatus ?? ''),
   );
+
+  /** Deposit paid online; what is left is settled at the clinic. */
+  protected readonly depositBalance = computed(() => {
+    const a = this.appointment();
+    return a && (a.depositPaidEgp ?? 0) > 0
+      ? Math.max(0, (a.totalEgp ?? 0) - (a.depositPaidEgp ?? 0))
+      : null;
+  });
 
   protected readonly showVideoJoin = computed(() => {
     const a = this.appointment();

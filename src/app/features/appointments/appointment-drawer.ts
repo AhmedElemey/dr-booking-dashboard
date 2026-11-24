@@ -101,8 +101,14 @@ export class AppointmentDrawer implements OnInit {
 
   protected readonly actions = computed(() => {
     const a = this.appointment();
-    return a ? availableActions(a.status, a.startsAt, a.endsAt, this.clock.now()) : null;
+    if (!a) return null;
+    const actions = availableActions(a.status, a.startsAt, a.endsAt, this.clock.now());
+    // Only a clinic admin or the visit's own doctor may correct a closed visit (the server enforces it too).
+    return this.canCorrect() ? actions : { ...actions, correct: null };
   });
+  private readonly canCorrect = computed(
+    () => this.auth.role() === 'Doctor' || this.auth.user()?.isClinicAdmin === true,
+  );
   protected readonly hasAnyAction = computed(() => {
     const actions = this.actions();
     return !!actions && Object.values(actions).some(Boolean);

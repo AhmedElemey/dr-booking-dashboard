@@ -25,7 +25,7 @@ import { AppointmentDrawer } from './appointment-drawer';
 
 export const AGENDA_REFRESH_MS = 60_000;
 
-const STATUSES: AppointmentStatus[] = ['Confirmed', 'Completed', 'NoShow', 'Cancelled'];
+const STATUSES: AppointmentStatus[] = ['Pending', 'Confirmed', 'Completed', 'NoShow', 'Cancelled'];
 
 interface DayGroup {
   key: string;
@@ -113,6 +113,7 @@ export class Agenda {
 
   protected readonly counts = computed(() => {
     const counts: Record<AppointmentStatus, number> = {
+      Pending: 0,
       Confirmed: 0,
       Completed: 0,
       NoShow: 0,

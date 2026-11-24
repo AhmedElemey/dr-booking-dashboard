@@ -536,6 +536,8 @@
     "checkIn": "Check in",
     "start": "Start",
     "complete": "Complete",
+    "noShow": "Didn't attend",
+    "noShowDone": "Marked as did not attend.",
     "checkedIn": "The patient is checked in.",
     "started": "The visit started.",
     "completed": "The visit is complete."

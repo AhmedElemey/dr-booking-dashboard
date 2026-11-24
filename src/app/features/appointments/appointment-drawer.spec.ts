@@ -5,9 +5,20 @@ import { TestBed } from '@angular/core/testing';
 
 import en from '../../../../public/i18n/en.json';
 import { provideFixedClock, provideTestTranslations } from '../../../testing/test-providers';
-import { DashboardAppointment } from '../../core/api/models';
+import { CurrentUser, DashboardAppointment } from '../../core/api/models';
+import { AuthService } from '../../core/auth/auth.service';
 import { API_ROOT } from '../../core/config/api-url';
 import { AppointmentDrawer } from './appointment-drawer';
+
+const clinicAdmin: CurrentUser = {
+  id: 'u1',
+  phone: '+201000000001',
+  fullName: 'Admin',
+  role: 'ClinicStaff',
+  preferredLanguage: 'en',
+  clinicId: 'c1',
+  isClinicAdmin: true,
+};
 
 const appointment = (over: Partial<DashboardAppointment> = {}): DashboardAppointment => ({
   id: 'a1',
@@ -33,7 +44,7 @@ class Host {
 describe('AppointmentDrawer', () => {
   let backend: HttpTestingController;
 
-  async function open(now: string, a: DashboardAppointment) {
+  async function open(now: string, a: DashboardAppointment, user: CurrentUser = clinicAdmin) {
     TestBed.configureTestingModule({
       imports: [Host],
       providers: [
@@ -44,6 +55,7 @@ describe('AppointmentDrawer', () => {
       ],
     });
     backend = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).user.set(user);
     const fixture = TestBed.createComponent(Host);
     fixture.detectChanges();
     backend.expectOne(`${API_ROOT}/dashboard/appointments/a1`).flush(a);
@@ -77,12 +89,13 @@ describe('AppointmentDrawer', () => {
     expect(text).not.toContain(en.drawer.cancel + '|');
   });
 
-  it('shows no actions for a terminal appointment', async () => {
-    const { el, buttons } = await open('2026-11-02T10:00:00', appointment({ status: 'Completed' }));
+  it('shows no actions for a terminal appointment older than 24 hours', async () => {
+    const { el, buttons } = await open('2026-11-04T10:00:00', appointment({ status: 'Completed' }));
     expect(buttons()).toEqual([]);
     expect(el.textContent).toContain(en.drawer.final);
   });
 
+<<<<<<< hamada14/pending-approval-ui
   it('a pending booking offers approve and reject only', async () => {
     const { buttons } = await open('2026-11-02T08:00:00', appointment({ status: 'Pending' }));
     const text = buttons().join('|');
@@ -138,6 +151,35 @@ describe('AppointmentDrawer', () => {
     fixture.detectChanges();
     expect(host.changes()).toBe(1);
     expect(el.textContent).toContain(en.status.Cancelled);
+=======
+  it('a recently completed visit offers a correction to no-show with a reason', async () => {
+    const { fixture, el, buttons } = await open(
+      '2026-11-02T10:00:00',
+      appointment({ status: 'Completed' }),
+    );
+    expect(buttons().join('|')).toContain(en.drawer.correctToNoShow);
+
+    const correctBtn = [...el.querySelectorAll<HTMLButtonElement>('.actions button')].find((b) =>
+      b.textContent!.includes(en.drawer.correctToNoShow),
+    )!;
+    correctBtn.click();
+    fixture.detectChanges();
+    const textarea = el.querySelector('textarea')!;
+    textarea.value = 'Patient arrived late';
+    textarea.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    [...el.querySelectorAll<HTMLButtonElement>('.row button')]
+      .find((b) => b.textContent!.includes(en.drawer.correctConfirm))!
+      .click();
+
+    const req = backend.expectOne(`${API_ROOT}/dashboard/appointments/a1/correct-status`);
+    expect(req.request.body).toEqual({ toStatus: 'NoShow', reason: 'Patient arrived late' });
+    req.flush(appointment({ status: 'NoShow' }));
+    backend
+      .expectOne(`${API_ROOT}/dashboard/appointments/a1`)
+      .flush(appointment({ status: 'NoShow' }));
+    await fixture.whenStable();
+>>>>>>> main
   });
 
   it('cancels with a reason via the clinic endpoint', async () => {
@@ -167,5 +209,22 @@ describe('AppointmentDrawer', () => {
     fixture.detectChanges();
     expect(host.changes()).toBe(1);
     expect(el.textContent).toContain(en.status.Cancelled);
+  });
+
+  it('reception staff who are not clinic admins get no correction button', async () => {
+    const { buttons } = await open('2026-11-02T10:00:00', appointment({ status: 'Completed' }), {
+      ...clinicAdmin,
+      isClinicAdmin: false,
+    });
+    expect(buttons().join('|')).not.toContain(en.drawer.correctToNoShow);
+  });
+
+  it('a doctor can correct a closed visit', async () => {
+    const { buttons } = await open('2026-11-02T10:00:00', appointment({ status: 'Completed' }), {
+      ...clinicAdmin,
+      role: 'Doctor',
+      isClinicAdmin: undefined,
+    });
+    expect(buttons().join('|')).toContain(en.drawer.correctToNoShow);
   });
 });

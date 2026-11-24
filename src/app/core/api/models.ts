@@ -38,6 +38,8 @@ export interface CurrentUser {
   preferredLanguage: AppLang;
   doctorId?: string | null;
   clinicId?: string | null;
+  /** ClinicStaff only: a clinic admin may correct a closed visit's status. */
+  isClinicAdmin?: boolean;
 }
 
 export interface TokenResponse {

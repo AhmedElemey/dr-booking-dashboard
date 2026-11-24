@@ -219,8 +219,8 @@ export class Queue {
 
   /** "Didn't attend": a checked-in visit, or a confirmed one whose time has come. */
   protected canNoShow(entry: DashboardQueueEntry): boolean {
-    const { status, startsAt } = entry.appointment;
-    return availableActions(status, startsAt, this.clock.now()).noShow;
+    const { status, startsAt, endsAt } = entry.appointment;
+    return availableActions(status, startsAt, endsAt, this.clock.now()).noShow;
   }
 
   protected doctorName(d: Doctor): string {

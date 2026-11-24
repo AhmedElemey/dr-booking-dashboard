@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 
 import { applyBrand } from '../../core/config/brand';
 import en from '../../../../public/i18n/en.json';
+import { environment } from '../../../environments/environment';
 import { provideTestTranslations } from '../../../testing/test-providers';
 import { API_ROOT } from '../../core/config/api-url';
 import { Login } from './login';
@@ -111,5 +112,20 @@ describe('Login', () => {
       applyBrand(en, 'en').errors.ROLE_NOT_ALLOWED,
     );
     expect(localStorage.getItem('moonlight.refreshToken')).toBeNull();
+  });
+
+  it('hides the demo banner by default and shows it only when hostedTest is on', async () => {
+    const { fixture, el } = await setup();
+    expect(el.querySelector('.demo-banner')).toBeNull();
+    fixture.destroy();
+
+    (environment as { hostedTest: boolean }).hostedTest = true;
+    const fixture2 = TestBed.createComponent(Login);
+    fixture2.detectChanges();
+    await fixture2.whenStable();
+    fixture2.detectChanges();
+    expect((fixture2.nativeElement as HTMLElement).querySelector('.demo-banner')).not.toBeNull();
+    fixture2.destroy();
+    (environment as { hostedTest: boolean }).hostedTest = false;
   });
 });

@@ -77,6 +77,9 @@ export interface DashboardAppointment {
   discountEgp?: number | null;
   totalEgp?: number | null;
   paymentStatus?: PaymentStatus;
+  /** Booking deposit: what the clinic asked for and what is paid online (the balance is settled at the clinic). */
+  depositRequiredEgp?: number;
+  depositPaidEgp?: number;
   /** insurance. */
   insurance?: AppointmentInsurance | null;
   /** reviews. */
@@ -88,7 +91,7 @@ export interface DashboardAppointment {
 }
 
 export type AppointmentMode = 'InPerson' | 'Video';
-export type PaymentStatus = 'Unpaid' | 'Pending' | 'Paid' | 'Refunded';
+export type PaymentStatus = 'Unpaid' | 'Pending' | 'Paid' | 'Refunded' | 'DepositPaid';
 export type FamilyRelation = 'Child' | 'Spouse' | 'Parent' | 'Sibling' | 'Other';
 export type InsuranceStatus = 'Pending' | 'Approved' | 'Rejected';
 

@@ -94,19 +94,34 @@
                 <th scope="row">{{ 'drawer.total' | translate }}</th>
                 <td class="num">{{ money(a.totalEgp) }} {{ 'common.egp' | translate }}</td>
               </tr>
+              @if (depositBalance() !== null) {
+                <tr class="deposit">
+                  <th scope="row">{{ 'drawer.depositPaid' | translate }}</th>
+                  <td class="num">{{ money(a.depositPaidEgp) }} {{ 'common.egp' | translate }}</td>
+                </tr>
+                <tr class="deposit-balance">
+                  <th scope="row">{{ 'drawer.balanceAtClinic' | translate }}</th>
+                  <td class="num">{{ money(depositBalance()) }} {{ 'common.egp' | translate }}</td>
+                </tr>
+              }
             </tbody>
           </table>
           <div class="payment-row">
             <span
               class="pill"
               [class.ok]="a.paymentStatus === 'Paid'"
-              [class.warn]="a.paymentStatus === 'Pending'"
+              [class.warn]="a.paymentStatus === 'Pending' || a.paymentStatus === 'DepositPaid'"
               [class.info]="a.paymentStatus === 'Refunded'"
               >{{ 'drawer.paymentStatus.' + (a.paymentStatus ?? 'Unpaid') | translate }}</span
             >
             @if (canMarkPaid()) {
               <button mat-flat-button type="button" [disabled]="busy()" (click)="markPaid()">
-                <mat-icon>price_check</mat-icon>{{ 'drawer.markPaid' | translate }}
+                <mat-icon>price_check</mat-icon>
+                @if (depositBalance() !== null) {
+                  {{ 'drawer.markBalancePaid' | translate: { amount: money(depositBalance()) } }}
+                } @else {
+                  {{ 'drawer.markPaid' | translate }}
+                }
               </button>
             }
             @if (canRefund()) {

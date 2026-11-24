@@ -230,9 +230,13 @@
       "Unpaid": "Unpaid",
       "Pending": "Payment pending",
       "Paid": "Paid",
-      "Refunded": "Refunded"
+      "Refunded": "Refunded",
+      "DepositPaid": "Deposit paid"
     },
+    "depositPaid": "Deposit paid online",
+    "balanceAtClinic": "Balance at the clinic",
     "markPaid": "Mark paid (cash)",
+    "markBalancePaid": "Mark balance paid (cash): {{amount}} EGP",
     "paidMarked": "Marked as paid.",
     "refunded": "The refund was requested.",
     "refundMessage": "Refund {{amount}} EGP for this appointment? This cannot be undone.",

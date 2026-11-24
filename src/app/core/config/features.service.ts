@@ -8,7 +8,7 @@ import { SKIP_ERROR_TOAST } from '../http/http-context';
 import { BRAND, FEATURE_KEYS, FeatureFlags, FeatureKey } from './brand';
 import { apiUrl } from './api-url';
 
-export const FEATURES_CACHE_KEY = 'moonlight.features';
+export const FEATURES_CACHE_KEY = 'drbooking.features';
 export const FEATURES_REFRESH_MS = 5 * 60 * 1000;
 
 interface FeaturesResponse {

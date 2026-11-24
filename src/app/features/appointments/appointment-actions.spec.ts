@@ -8,8 +8,23 @@ const before = DateTime.fromISO('2026-11-02T06:59:00Z');
 const after = DateTime.fromISO('2026-11-02T07:01:00Z');
 
 describe('availableActions (spec transition table)', () => {
+  it('Pending can be approved or rejected, nothing else, before or after the start', () => {
+    for (const now of [before, after]) {
+      expect(availableActions('Pending', STARTS, now)).toEqual({
+        approve: true,
+        reject: true,
+        reschedule: false,
+        cancel: false,
+        complete: false,
+        noShow: false,
+      });
+    }
+  });
+
   it('before the start: Confirmed can be rescheduled or cancelled, not completed or no-show', () => {
     expect(availableActions('Confirmed', STARTS, before)).toEqual({
+      approve: false,
+      reject: false,
       reschedule: true,
       cancel: true,
       complete: false,
@@ -19,6 +34,8 @@ describe('availableActions (spec transition table)', () => {
 
   it('after the start: Confirmed can be completed or no-show, not cancelled', () => {
     expect(availableActions('Confirmed', STARTS, after)).toEqual({
+      approve: false,
+      reject: false,
       reschedule: true,
       cancel: false,
       complete: true,
@@ -39,6 +56,8 @@ describe('availableActions (spec transition table)', () => {
     (status) => {
       for (const now of [before, after]) {
         expect(availableActions(status, STARTS, now)).toEqual({
+          approve: false,
+          reject: false,
           reschedule: false,
           cancel: false,
           complete: false,

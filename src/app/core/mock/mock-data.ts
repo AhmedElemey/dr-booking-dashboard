@@ -42,6 +42,8 @@ export interface MockState {
   patients: MockPatient[];
   /** Phase 2 feature data (holidays, payments, reviews, ...). */
   p2: Phase2State;
+  /** Platform admin: per-clinic feature overrides and deposit amounts, keyed by clinic id. */
+  adminFlags: Record<string, { overrides: Record<string, boolean>; deposit: number | null }>;
 }
 
 export const CLINIC_ID = 'clinic-noor';
@@ -335,6 +337,7 @@ export function createMockState(now: DateTime = DateTime.now()): MockState {
 
   return {
     clinics: structuredClone(clinics),
+    adminFlags: {},
     specialties: structuredClone(specialties),
     doctors: structuredClone(doctors),
     services: structuredClone(services),

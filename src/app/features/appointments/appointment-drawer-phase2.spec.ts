@@ -105,6 +105,20 @@ describe('AppointmentDrawer phase 2 blocks', () => {
     expect(h.el.querySelector('.payment-row')?.textContent).toContain('Refund');
   });
 
+  it('shows a deposit-paid visit with the balance due at the clinic', async () => {
+    const h = await open(['onlinePayments'], {
+      paymentStatus: 'DepositPaid',
+      totalEgp: 300,
+      depositRequiredEgp: 100,
+      depositPaidEgp: 100,
+    });
+    const text = h.el.textContent ?? '';
+    expect(text).toContain('Deposit paid');
+    expect(h.el.querySelector('.deposit-balance')?.textContent).toContain('200');
+    expect(internals(h.fixture)['canMarkPaid']()).toBe(false);
+    expect(internals(h.fixture)['canRefund']()).toBe(true);
+  });
+
   it('hides Refund from doctors but keeps Mark paid', async () => {
     const paid = await open(['onlinePayments'], { paymentStatus: 'Paid' }, 'Doctor');
     expect(internals(paid.fixture)['canRefund']()).toBe(false);

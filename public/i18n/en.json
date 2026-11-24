@@ -129,6 +129,9 @@
     "ALREADY_WAITING": "This patient is already on the waiting list for that day.",
     "PROVIDER_ERROR": "The payment or messaging provider did not respond. Please try again in a moment."
   },
+  "timezoneNames": {
+    "Africa/Cairo": "Cairo (Egypt time)"
+  },
   "features": {
     "dismiss": "Dismiss",
     "disabledBanner": "\"{{feature}}\" is switched off for this clinic, so that action is not available.",
@@ -162,6 +165,9 @@
     "phone": "Phone",
     "role": "Role",
     "language": "Language"
+  },
+  "timezoneNames": {
+    "Africa/Cairo": "Cairo (Egypt time)"
   },
   "agenda": {
     "title": "Agenda",

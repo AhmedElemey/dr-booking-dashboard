@@ -129,6 +129,17 @@
     "ALREADY_WAITING": "This patient is already on the waiting list for that day.",
     "PROVIDER_ERROR": "The payment or messaging provider did not respond. Please try again in a moment."
   },
+  "transitionDetail": {
+    "notStarted": "The visit has not started yet.",
+    "checkInDay": "Check-in opens on the day of the visit.",
+    "alreadyStarted": "The visit has already started. Mark it completed or no-show instead.",
+    "anotherInRoom": "Another patient is with the doctor now.",
+    "correctOnly": "Only a completed or no-show visit can be corrected.",
+    "correctWindow": "Status corrections are allowed within 24 hours of closing the visit.",
+    "changedByOther": "The appointment was changed by someone else. Reload and try again.",
+    "alreadyStatus": "The appointment is already {{status}}.",
+    "noInsuranceClaim": "The appointment has no insurance claim."
+  },
   "features": {
     "dismiss": "Dismiss",
     "disabledBanner": "\"{{feature}}\" is switched off for this clinic, so that action is not available.",

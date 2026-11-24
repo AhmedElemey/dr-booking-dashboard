@@ -77,6 +77,9 @@ export interface DashboardAppointment {
   discountEgp?: number | null;
   totalEgp?: number | null;
   paymentStatus?: PaymentStatus;
+  /** Booking deposit: what the clinic asked for and what is paid online (the balance is settled at the clinic). */
+  depositRequiredEgp?: number;
+  depositPaidEgp?: number;
   /** insurance. */
   insurance?: AppointmentInsurance | null;
   /** reviews. */
@@ -88,7 +91,7 @@ export interface DashboardAppointment {
 }
 
 export type AppointmentMode = 'InPerson' | 'Video';
-export type PaymentStatus = 'Unpaid' | 'Pending' | 'Paid' | 'Refunded';
+export type PaymentStatus = 'Unpaid' | 'Pending' | 'Paid' | 'Refunded' | 'DepositPaid';
 export type FamilyRelation = 'Child' | 'Spouse' | 'Parent' | 'Sibling' | 'Other';
 export type InsuranceStatus = 'Pending' | 'Approved' | 'Rejected';
 
@@ -243,24 +246,6 @@ export interface Clinic {
 
 export type UpdateClinicRequest = Omit<Clinic, 'id' | 'timezone' | 'isActive'>;
 export type CreateClinicRequest = Omit<UpdateClinicRequest, 'showPrices'> & { timezone?: string };
-
-export interface AdminFeatureValue {
-  effective: boolean;
-  hasOverride: boolean;
-}
-
-export interface AdminClinicFeatures {
-  clinicId: string;
-  depositAmountEgp?: number | null;
-  features: Record<string, AdminFeatureValue>;
-}
-
-export interface UpdateClinicFeaturesRequest {
-  /** Keys to override (true/false) or reset to the deployment default (null). */
-  features?: Record<string, boolean | null>;
-  depositAmountEgp?: number;
-  clearDepositAmountEgp?: boolean;
-}
 
 export interface CreateClinicUserRequest {
   phone: string;

@@ -247,6 +247,24 @@ export interface Clinic {
 export type UpdateClinicRequest = Omit<Clinic, 'id' | 'timezone' | 'isActive'>;
 export type CreateClinicRequest = Omit<UpdateClinicRequest, 'showPrices'> & { timezone?: string };
 
+export interface AdminFeatureValue {
+  effective: boolean;
+  hasOverride: boolean;
+}
+
+export interface AdminClinicFeatures {
+  clinicId: string;
+  depositAmountEgp?: number | null;
+  features: Record<string, AdminFeatureValue>;
+}
+
+export interface UpdateClinicFeaturesRequest {
+  /** Keys to override (true/false) or reset to the deployment default (null). */
+  features?: Record<string, boolean | null>;
+  depositAmountEgp?: number;
+  clearDepositAmountEgp?: boolean;
+}
+
 export interface CreateClinicUserRequest {
   phone: string;
   fullName: string;

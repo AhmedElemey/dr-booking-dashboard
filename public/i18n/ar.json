@@ -244,7 +244,12 @@
     "reject": "رفض",
     "insuranceApproved": "تمت الموافقة على التأمين.",
     "insuranceRejected": "تم رفض التأمين.",
-    "review": "تقييم المريض"
+    "review": "تقييم المريض",
+    "correctTitle": "تصحيح حالة الموعد",
+    "correctToNoShow": "تصحيح: لم يحضر",
+    "correctToCompleted": "تصحيح: تمت الزيارة",
+    "correctConfirm": "حفظ التصحيح",
+    "corrected": "تم تصحيح الحالة"
   },
   "slotPicker": {
     "none": "لا توجد فترات متاحة خلال الـ 14 يومًا القادمة.",
@@ -574,7 +579,9 @@
     "lastVisit": "آخر زيارة",
     "visits": "المواعيد",
     "open": "فتح السجل",
-    "record": "سجل المريض"
+    "record": "سجل المريض",
+    "noShows": "لم يحضر",
+    "noShowCount": "لم يحضر {{count}} مرة"
   },
   "records": {
     "recordOf": "سجل",

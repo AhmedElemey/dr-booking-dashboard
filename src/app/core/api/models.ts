@@ -244,6 +244,7 @@ export interface CreateClinicUserRequest {
   nameAr?: string;
   nameEn?: string;
   specialtyId?: string;
+  isAdmin?: boolean;
 }
 
 export interface AdminUser {
@@ -254,4 +255,5 @@ export interface AdminUser {
   isActive: boolean;
   clinicId?: string | null;
   doctorId?: string | null;
+  isAdmin?: boolean | null;
 }

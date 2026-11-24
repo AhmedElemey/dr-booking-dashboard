@@ -634,9 +634,22 @@ export class MockBackend {
           fullName: String(body['fullName']),
           role: body['role'] as AdminUser['role'],
           isActive: true,
+          isAdmin: body['role'] === 'ClinicStaff' ? body['isAdmin'] === true : null,
         };
         return user;
       },
+    ],
+    [
+      'PATCH',
+      /^\/admin\/users\/([^/]+)\/admin$/,
+      ({ params, body }) => ({
+        id: params[0],
+        phone: '',
+        fullName: null,
+        role: 'ClinicStaff',
+        isActive: true,
+        isAdmin: Boolean(body['isAdmin']),
+      }),
     ],
     [
       'PATCH',

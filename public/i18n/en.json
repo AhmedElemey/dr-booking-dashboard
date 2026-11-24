@@ -407,6 +407,7 @@
       "active": "Active"
     },
     "addUser": "Add user",
+    "clinicAdmin": "Clinic admin (manages staff and corrections)",
     "noClinics": "No clinics yet.",
     "users": "Accounts",
     "usersEmpty": "Accounts you create in this session appear here.",

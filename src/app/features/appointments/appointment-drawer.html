@@ -220,6 +220,28 @@
           </div>
         </section>
       }
+      @case ('correct') {
+        <section class="sub" aria-live="polite">
+          <h3>{{ 'drawer.correctTitle' | translate }}</h3>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'drawer.reason' | translate }}</mat-label>
+            <textarea matInput rows="3" maxlength="500" [(ngModel)]="correctReason"></textarea>
+          </mat-form-field>
+          <div class="row">
+            <button mat-button type="button" (click)="back()" [disabled]="busy()">
+              {{ 'common.back' | translate }}
+            </button>
+            <button
+              mat-flat-button
+              type="button"
+              (click)="submitCorrect()"
+              [disabled]="busy()"
+            >
+              {{ 'drawer.correctConfirm' | translate }}
+            </button>
+          </div>
+        </section>
+      }
       @case ('reschedule') {
         <section class="sub" aria-live="polite">
           <h3>{{ 'drawer.rescheduleTitle' | translate }}</h3>
@@ -266,6 +288,20 @@
                   (click)="confirmAndRun('noShow', 'drawer.noShow', 'drawer.noShowConfirm')"
                 >
                   <mat-icon>person_off</mat-icon>{{ 'drawer.noShow' | translate }}
+                </button>
+              }
+              @if (actions.correct) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="startCorrect(actions.correct)"
+                >
+                  <mat-icon>edit_note</mat-icon
+                  >{{
+                    (actions.correct === 'NoShow' ? 'drawer.correctToNoShow' : 'drawer.correctToCompleted')
+                      | translate
+                  }}
                 </button>
               }
               @if (actions.reschedule) {

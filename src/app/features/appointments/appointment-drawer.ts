@@ -46,7 +46,7 @@ export function isHttpsUrl(value: string | null | undefined): boolean {
   }
 }
 
-type Mode = 'view' | 'cancel' | 'reschedule';
+type Mode = 'view' | 'cancel' | 'reschedule' | 'correct';
 
 /** Appointment detail with every status action: reschedule, cancel (with reason), complete, no-show. */
 @Component({
@@ -93,14 +93,22 @@ export class AppointmentDrawer implements OnInit {
   protected readonly mode = signal<Mode>('view');
   protected cancelReason = '';
   protected insuranceNote = '';
+  protected correctReason = '';
+  protected readonly correctTarget = signal<'Completed' | 'NoShow' | null>(null);
 
   protected readonly openSlots = signal<Slot[]>([]);
   protected readonly targetSlot = signal<Slot | null>(null);
 
   protected readonly actions = computed(() => {
     const a = this.appointment();
-    return a ? availableActions(a.status, a.startsAt, this.clock.now()) : null;
+    if (!a) return null;
+    const actions = availableActions(a.status, a.startsAt, a.endsAt, this.clock.now());
+    // Only a clinic admin or the visit's own doctor may correct a closed visit (the server enforces it too).
+    return this.canCorrect() ? actions : { ...actions, correct: null };
   });
+  private readonly canCorrect = computed(
+    () => this.auth.role() === 'Doctor' || this.auth.user()?.isClinicAdmin === true,
+  );
   protected readonly hasAnyAction = computed(() => {
     const actions = this.actions();
     return !!actions && Object.values(actions).some(Boolean);
@@ -166,6 +174,22 @@ export class AppointmentDrawer implements OnInit {
         }),
       )
       .subscribe(this.afterChange('drawer.updated'));
+  }
+
+  protected startCorrect(target: 'Completed' | 'NoShow'): void {
+    this.correctTarget.set(target);
+    this.correctReason = '';
+    this.mode.set('correct');
+  }
+
+  protected submitCorrect(): void {
+    const appointment = this.appointment();
+    const target = this.correctTarget();
+    if (!appointment || !target) return;
+    this.busy.set(true);
+    this.api
+      .correctStatus(appointment.id, target, this.correctReason.trim())
+      .subscribe(this.afterChange('drawer.corrected'));
   }
 
   protected startCancel(): void {

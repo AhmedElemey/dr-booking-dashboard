@@ -769,6 +769,7 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
               phone: p.phone,
               lastVisitAt: past.at(-1) ?? null,
               appointmentsCount: appts.length,
+              noShowCount: appts.filter((a) => a.status === 'NoShow').length,
             };
           })
           .sort((a, b) => (b.lastVisitAt ?? '').localeCompare(a.lastVisitAt ?? ''));
@@ -800,6 +801,7 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
           }));
         return {
           patient: { id: patient.id, fullName: patient.fullName, phone: patient.phone },
+          noShowCount: apptsOfPatient(patient.id).filter((a) => a.status === 'NoShow').length,
           familyMembers: p2()
             .familyMembers.filter((f) => f.ownerId === patient.id)
             .map((f) => omit(f, 'ownerId')),

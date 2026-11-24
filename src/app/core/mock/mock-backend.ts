@@ -74,6 +74,7 @@ export class MockBackend {
       role: 'ClinicStaff',
       preferredLanguage: 'ar',
       clinicId: CLINIC_ID,
+      isClinicAdmin: true,
     };
   }
 
@@ -451,6 +452,19 @@ export class MockBackend {
       'POST',
       /^\/dashboard\/appointments\/([^/]+)\/no-show$/,
       ({ params, role }) => this.finish(params[0], role, 'NoShow'),
+    ],
+    [
+      'POST',
+      /^\/dashboard\/appointments\/([^/]+)\/correct-status$/,
+      ({ params, body, role }) => {
+        const a = this.appointmentOrThrow(params[0], role);
+        const to = body['toStatus'] as AppointmentStatus;
+        if (to !== 'Completed' && to !== 'NoShow') throw new ApiError(422, 'VALIDATION_FAILED');
+        if (a.status !== 'Completed' && a.status !== 'NoShow') throw new ApiError(409, 'INVALID_TRANSITION');
+        // The 24-hour correction window is enforced server-side; the mock stays permissive.
+        this.setStatus(a, to);
+        return this.dto(a);
+      },
     ],
 
     // dashboard doctors

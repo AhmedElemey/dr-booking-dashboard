@@ -50,6 +50,18 @@ export class AppointmentsApi {
     );
   }
 
+  /** Q5: correct a mistaken Completed/NoShow within 24 hours; a corrected no-show refunds the online payment. */
+  correctStatus(
+    id: string,
+    toStatus: 'Completed' | 'NoShow',
+    reason?: string,
+  ): Observable<DashboardAppointment> {
+    return this.http.post<DashboardAppointment>(
+      apiUrl(`/dashboard/appointments/${id}/correct-status`),
+      { toStatus, reason: reason || null },
+    );
+  }
+
   noShow(id: string): Observable<DashboardAppointment> {
     return this.http.post<DashboardAppointment>(
       apiUrl(`/dashboard/appointments/${id}/no-show`),

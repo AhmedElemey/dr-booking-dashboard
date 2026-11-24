@@ -101,7 +101,7 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
           </mat-form-field>
           <mat-form-field appearance="outline" class="full">
             <mat-label>{{ 'clinic.timezone' | translate }}</mat-label>
-            <input matInput [value]="timezoneLabel()" readonly dir="ltr" />
+            <input matInput [value]="timezoneLabel()" readonly dir="auto" />
             <mat-hint>{{ 'clinic.timezoneHint' | translate }}</mat-hint>
           </mat-form-field>
           <mat-slide-toggle class="full" formControlName="showPrices">{{
@@ -150,7 +150,6 @@ export class ClinicSettings {
   private readonly auth = inject(AuthService);
   private readonly clinicTime = inject(ClinicTime);
   private readonly translate = inject(TranslateService);
-  private readonly translate = inject(TranslateService);
   private readonly features = inject(FeaturesService);
 
   protected readonly canEdit = computed(() => this.auth.role() === 'ClinicStaff');
@@ -158,13 +157,6 @@ export class ClinicSettings {
   protected readonly pricesAllowed = computed(() => this.features.features().publicPrices);
   protected readonly saving = signal(false);
   protected readonly timezone = signal('Africa/Cairo');
-
-  /** A friendly name for the clinic timezone; unknown zones show their IANA name. */
-  protected timezoneLabel(): string {
-    const key = `timezoneNames.${this.timezone()}`;
-    const label = this.translate.instant(key);
-    return label === key ? this.timezone() : label;
-  }
 
   /** A friendly name for the clinic timezone; unknown zones show their IANA name. */
   protected timezoneLabel(): string {

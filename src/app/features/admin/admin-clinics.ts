@@ -18,6 +18,7 @@ import { ToastService } from '../../core/http/toast.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { localized } from '../../core/i18n/localized';
 import { ClinicDialog } from './clinic-dialog';
+import { FeaturesDialog } from './features-dialog';
 import { UserDialog } from './user-dialog';
 
 /** Platform admin: clinics list with create / activate, plus account creation and deactivation. */
@@ -103,6 +104,10 @@ export class AdminClinics {
       },
       error: () => this.load(),
     });
+  }
+
+  protected clinicFeatures(clinic: Clinic): void {
+    this.dialog.open(FeaturesDialog, { data: { clinic } });
   }
 
   protected addUser(clinic: Clinic): void {

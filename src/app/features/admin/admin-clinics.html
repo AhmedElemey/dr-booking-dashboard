@@ -46,6 +46,14 @@
               />
             </td>
             <td class="end">
+              <button
+                mat-stroked-button
+                type="button"
+                [attr.aria-label]="'admin.features' | translate"
+                (click)="clinicFeatures(c)"
+              >
+                <mat-icon>tune</mat-icon>{{ 'admin.features' | translate }}
+              </button>
               <button mat-stroked-button type="button" (click)="addUser(c)">
                 <mat-icon>person_add</mat-icon>{{ 'admin.addUser' | translate }}
               </button>

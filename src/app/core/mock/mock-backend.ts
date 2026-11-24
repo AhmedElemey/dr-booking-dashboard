@@ -37,6 +37,30 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 export class MockBackend {
   state: MockState = createMockState();
   private seq = 100;
+
+  private adminFlagsEntry(clinicId: string) {
+    return (this.state.adminFlags[clinicId] ??= { overrides: {}, deposit: null });
+  }
+
+  private adminFeatures(clinicId: string) {
+    if (!this.state.clinics.some((c) => c.id === clinicId)) {
+      throw new ApiError(404, 'NOT_FOUND');
+    }
+    const entry = this.adminFlagsEntry(clinicId);
+    const defaults: Record<string, boolean> = {
+      ...BRAND.features,
+      ...Object.fromEntries(PHASE2_FEATURE_KEYS.map((key) => [key, true])),
+      manualReview: true,
+      publicPrices: true,
+    };
+    const features: Record<string, { effective: boolean; hasOverride: boolean }> = {};
+    for (const key of Object.keys(defaults)) {
+      const has = key in entry.overrides;
+      features[key] = { effective: has ? entry.overrides[key] : defaults[key], hasOverride: has };
+    }
+    return { clinicId, depositAmountEgp: entry.deposit, features };
+  }
+
   /** Language of the request being handled (from Accept-Language). */
   lang: 'ar' | 'en' = 'ar';
 
@@ -726,6 +750,34 @@ export class MockBackend {
         if (!clinic) throw new ApiError(404, 'NOT_FOUND');
         clinic.isActive = Boolean(body['isActive']);
         return clinic;
+      },
+    ],
+    [
+      'GET',
+      /^\/admin\/clinics\/([^/]+)\/features$/,
+      ({ params }) => this.adminFeatures(params[0]),
+    ],
+    [
+      'PUT',
+      /^\/admin\/clinics\/([^/]+)\/features$/,
+      ({ params, body }) => {
+        const entry = this.adminFlagsEntry(params[0]);
+        const features = body['features'] as Record<string, boolean | null> | undefined;
+        if (features) {
+          for (const [key, value] of Object.entries(features)) {
+            if (value === null) {
+              delete entry.overrides[key];
+            } else {
+              entry.overrides[key] = value;
+            }
+          }
+        }
+        if (body['clearDepositAmountEgp']) {
+          entry.deposit = null;
+        } else if (body['depositAmountEgp'] !== undefined) {
+          entry.deposit = Number(body['depositAmountEgp']);
+        }
+        return this.adminFeatures(params[0]);
       },
     ],
     [

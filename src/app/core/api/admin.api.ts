@@ -3,7 +3,15 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { apiUrl } from '../config/api-url';
-import { AdminUser, Clinic, CreateClinicRequest, CreateClinicUserRequest, Paged } from './models';
+import {
+  AdminClinicFeatures,
+  AdminUser,
+  Clinic,
+  CreateClinicRequest,
+  CreateClinicUserRequest,
+  Paged,
+  UpdateClinicFeaturesRequest,
+} from './models';
 
 @Injectable({ providedIn: 'root' })
 export class AdminApi {
@@ -20,6 +28,14 @@ export class AdminApi {
 
   setClinicActive(id: string, isActive: boolean): Observable<Clinic> {
     return this.http.patch<Clinic>(apiUrl(`/admin/clinics/${id}/active`), { isActive });
+  }
+
+  clinicFeatures(clinicId: string): Observable<AdminClinicFeatures> {
+    return this.http.get<AdminClinicFeatures>(apiUrl(`/admin/clinics/${clinicId}/features`));
+  }
+
+  updateClinicFeatures(clinicId: string, body: UpdateClinicFeaturesRequest): Observable<AdminClinicFeatures> {
+    return this.http.put<AdminClinicFeatures>(apiUrl(`/admin/clinics/${clinicId}/features`), body);
   }
 
   createUser(clinicId: string, body: CreateClinicUserRequest): Observable<AdminUser> {

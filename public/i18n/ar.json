@@ -438,7 +438,8 @@
     "clinicDeactivated": "تم إخفاء العيادة",
     "userCreated": "تم إنشاء الحساب",
     "userDeactivated": "تم تعطيل الحساب",
-    "userReactivated": "تمت إعادة تفعيل الحساب"
+    "userReactivated": "تمت إعادة تفعيل الحساب",
+    "features": "المميزات"
   },
   "family": {
     "relation": {
@@ -846,5 +847,42 @@
     "PerPatientLimit": "استخدم هذا المريض الكوبون الحد الأقصى المسموح من المرات.",
     "NotApplicable": "هذا الكوبون لا ينطبق على هذا الطبيب أو هذه الخدمة.",
     "NoPrice": "هذا الموعد بلا سعر، لذلك لا يمكن تطبيق كوبون."
+  },
+  "adminFeatures": {
+    "title": "مميزات العيادة",
+    "deposit": "العربون الثابت (جنيه)",
+    "depositHint": "بيتدفع أونلاين عند الحجز. سيبه فاضي عشان ياخد قيمة المنصة.",
+    "clearDeposit": "رجوع لقيمة المنصة",
+    "overridden": "مخصص",
+    "defaultChip": "الافتراضي",
+    "resetToDefault": "رجوع للافتراضي",
+    "undoReset": "تراجع",
+    "saved": "تم حفظ مميزات العيادة",
+    "keys": {
+      "mobileApp": "تطبيق الموبايل",
+      "website": "الموقع",
+      "guestBrowsing": "التصفح من غير حساب",
+      "patientSelfService": "حجز المريض بنفسه",
+      "pushReminders": "الإشعارات الفورية",
+      "smsNotifications": "رسائل SMS",
+      "englishLanguage": "اللغة الإنجليزية",
+      "multiBranch": "فروع متعددة",
+      "videoConsultation": "الكشف بالفيديو",
+      "waitingList": "قائمة الانتظار",
+      "familyAccounts": "حسابات العيلة",
+      "whatsappReminders": "تذكير واتساب",
+      "onlinePayments": "الدفع أونلاين",
+      "insurance": "التأمين",
+      "holidayCalendar": "الأجازات الرسمية",
+      "workingHoursTemplates": "قوالب مواعيد العمل",
+      "patientRecords": "ملفات المرضى",
+      "reviews": "التقييمات",
+      "promotions": "العروض",
+      "recallCampaigns": "حملات المتابعة",
+      "reports": "التقارير",
+      "manualReview": "مراجعة الحجوزات قبل التأكيد",
+      "publicPrices": "إظهار الأسعار",
+      "liveQueue": "الطابور الحي"
+    }
   }
 }

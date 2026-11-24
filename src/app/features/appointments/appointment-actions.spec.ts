@@ -71,20 +71,22 @@ describe('availableActions (spec transition table)', () => {
   );
 
   it('liveQueue: a checked-in visit can complete or no-show', () => {
-    expect(availableActions('CheckedIn', STARTS, after)).toEqual({
+    expect(availableActions('CheckedIn', STARTS, ENDS, after)).toEqual({
       reschedule: false,
       cancel: false,
       complete: true,
       noShow: true,
+      correct: null,
     });
   });
 
   it('liveQueue: a visit with the doctor can only complete', () => {
-    expect(availableActions('InProgress', STARTS, after)).toEqual({
+    expect(availableActions('InProgress', STARTS, ENDS, after)).toEqual({
       reschedule: false,
       cancel: false,
       complete: true,
       noShow: false,
+      correct: null,
     });
   });
 });

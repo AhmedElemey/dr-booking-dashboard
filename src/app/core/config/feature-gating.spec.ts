@@ -68,7 +68,7 @@ describe('feature gating', () => {
 
   it('remembers nothing but Arabic while englishLanguage is off', () => {
     const features = setup();
-    localStorage.setItem('moonlight.language', 'en');
+    localStorage.setItem('drbooking.language', 'en');
     features.features.update((f) => ({ ...f, englishLanguage: false }));
     expect(TestBed.inject(LanguageService).stored()).toBe('ar');
   });

@@ -116,7 +116,12 @@
             >
             @if (canMarkPaid()) {
               <button mat-flat-button type="button" [disabled]="busy()" (click)="markPaid()">
-                <mat-icon>price_check</mat-icon>{{ 'drawer.markPaid' | translate }}
+                <mat-icon>price_check</mat-icon>
+                @if (depositBalance() !== null) {
+                  {{ 'drawer.markBalancePaid' | translate: { amount: money(depositBalance()) } }}
+                } @else {
+                  {{ 'drawer.markPaid' | translate }}
+                }
               </button>
             }
             @if (canRefund()) {

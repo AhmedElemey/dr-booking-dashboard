@@ -2,7 +2,7 @@
 
 export type Role = 'Patient' | 'Doctor' | 'ClinicStaff' | 'PlatformAdmin';
 export type AppLang = 'ar' | 'en';
-export type AppointmentStatus = 'Confirmed' | 'Cancelled' | 'Completed' | 'NoShow';
+export type AppointmentStatus = 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed' | 'NoShow';
 export type SlotStatus = 'Open' | 'Reserved' | 'Blocked';
 
 export interface Paged<T> {

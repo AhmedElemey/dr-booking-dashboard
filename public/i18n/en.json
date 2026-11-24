@@ -39,6 +39,7 @@
     "account": "Account",
     "logout": "Sign out",
     "waitingList": "Waiting list",
+    "queue": "Queue",
     "patients": "Patients",
     "payments": "Payments",
     "reviews": "Reviews",
@@ -61,6 +62,8 @@
     "Completed": "Completed",
     "NoShow": "No-show",
     "Cancelled": "Cancelled",
+    "CheckedIn": "Checked in",
+    "InProgress": "With the doctor",
     "Open": "Open",
     "Reserved": "Reserved",
     "Blocked": "Blocked"
@@ -149,7 +152,8 @@
       "reviews": "Reviews",
       "promotions": "Promotions and coupons",
       "recallCampaigns": "Recall campaigns",
-      "reports": "Reports"
+      "reports": "Reports",
+      "liveQueue": "Live queue"
     }
   },
   "account": {
@@ -520,6 +524,21 @@
     },
     "notify": "Notify",
     "notified": "The patient was notified."
+  },
+  "queue": {
+    "title": "Queue",
+    "intro": "Today's visits in order: who is with the doctor, who has checked in, and who is still coming.",
+    "empty": "The queue is empty.",
+    "col": {
+      "position": "#",
+      "checkedIn": "Checked in"
+    },
+    "checkIn": "Check in",
+    "start": "Start",
+    "complete": "Complete",
+    "checkedIn": "The patient is checked in.",
+    "started": "The visit started.",
+    "completed": "The visit is complete."
   },
   "payments": {
     "title": "Payments",

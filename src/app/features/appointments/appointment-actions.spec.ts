@@ -11,25 +11,22 @@ const after = DateTime.fromISO('2026-11-02T07:01:00Z');
 describe('availableActions (spec transition table)', () => {
   it('Pending can be approved or rejected, nothing else, before or after the start', () => {
     for (const now of [before, after]) {
-      expect(availableActions('Pending', STARTS, now)).toEqual({
+      expect(availableActions('Pending', STARTS, ENDS, now)).toEqual({
         approve: true,
         reject: true,
         reschedule: false,
         cancel: false,
         complete: false,
         noShow: false,
+        correct: null,
       });
     }
   });
 
   it('before the start: Confirmed can be rescheduled or cancelled, not completed or no-show', () => {
-<<<<<<< hamada14/pending-approval-ui
-    expect(availableActions('Confirmed', STARTS, before)).toEqual({
+    expect(availableActions('Confirmed', STARTS, ENDS, before)).toEqual({
       approve: false,
       reject: false,
-=======
-    expect(availableActions('Confirmed', STARTS, ENDS, before)).toEqual({
->>>>>>> main
       reschedule: true,
       cancel: true,
       complete: false,
@@ -39,13 +36,9 @@ describe('availableActions (spec transition table)', () => {
   });
 
   it('after the start: Confirmed can be completed or no-show, not cancelled', () => {
-<<<<<<< hamada14/pending-approval-ui
-    expect(availableActions('Confirmed', STARTS, after)).toEqual({
+    expect(availableActions('Confirmed', STARTS, ENDS, after)).toEqual({
       approve: false,
       reject: false,
-=======
-    expect(availableActions('Confirmed', STARTS, ENDS, after)).toEqual({
->>>>>>> main
       reschedule: true,
       cancel: false,
       complete: true,
@@ -65,6 +58,8 @@ describe('availableActions (spec transition table)', () => {
   it('Cancelled is terminal: nothing is available', () => {
     for (const now of [before, after]) {
       expect(availableActions('Cancelled', STARTS, ENDS, now)).toEqual({
+        approve: false,
+        reject: false,
         reschedule: false,
         cancel: false,
         complete: false,
@@ -90,32 +85,15 @@ describe('availableActions (spec transition table)', () => {
   it.each<AppointmentStatus>(['Completed', 'NoShow'])(
     '%s can no longer be corrected 24 hours after the visit end',
     (status) => {
-<<<<<<< hamada14/pending-approval-ui
-      for (const now of [before, after]) {
-        expect(availableActions(status, STARTS, now)).toEqual({
-          approve: false,
-          reject: false,
-          reschedule: false,
-          cancel: false,
-          complete: false,
-          noShow: false,
-        });
-      }
-=======
       const late = DateTime.fromISO('2026-11-03T07:30:01Z');
       expect(availableActions(status, STARTS, ENDS, late)).toEqual(NO_ACTIONS_EXPECTED);
->>>>>>> main
     },
   );
 
   it('liveQueue: a checked-in visit can complete or no-show', () => {
-<<<<<<< hamada14/pending-approval-ui
-    expect(availableActions('CheckedIn', STARTS, after)).toEqual({
+    expect(availableActions('CheckedIn', STARTS, ENDS, after)).toEqual({
       approve: false,
       reject: false,
-=======
-    expect(availableActions('CheckedIn', STARTS, ENDS, after)).toEqual({
->>>>>>> main
       reschedule: false,
       cancel: false,
       complete: true,
@@ -125,13 +103,9 @@ describe('availableActions (spec transition table)', () => {
   });
 
   it('liveQueue: a visit with the doctor can only complete', () => {
-<<<<<<< hamada14/pending-approval-ui
-    expect(availableActions('InProgress', STARTS, after)).toEqual({
+    expect(availableActions('InProgress', STARTS, ENDS, after)).toEqual({
       approve: false,
       reject: false,
-=======
-    expect(availableActions('InProgress', STARTS, ENDS, after)).toEqual({
->>>>>>> main
       reschedule: false,
       cancel: false,
       complete: true,
@@ -142,6 +116,8 @@ describe('availableActions (spec transition table)', () => {
 });
 
 const NO_ACTIONS_EXPECTED = {
+  approve: false,
+  reject: false,
   reschedule: false,
   cancel: false,
   complete: false,

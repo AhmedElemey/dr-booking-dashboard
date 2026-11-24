@@ -236,6 +236,7 @@
     "depositPaid": "Deposit paid online",
     "balanceAtClinic": "Balance at the clinic",
     "markPaid": "Mark paid (cash)",
+    "markBalancePaid": "Mark balance paid (cash): {{amount}} EGP",
     "paidMarked": "Marked as paid.",
     "refunded": "The refund was requested.",
     "refundMessage": "Refund {{amount}} EGP for this appointment? This cannot be undone.",
@@ -441,7 +442,8 @@
     "clinicDeactivated": "Clinic hidden",
     "userCreated": "Account created",
     "userDeactivated": "Account deactivated",
-    "userReactivated": "Account reactivated"
+    "userReactivated": "Account reactivated",
+    "features": "Features"
   },
   "family": {
     "relation": {
@@ -849,5 +851,42 @@
     "PerPatientLimit": "This patient has already used this coupon the maximum number of times.",
     "NotApplicable": "This coupon does not apply to this doctor or service.",
     "NoPrice": "This appointment has no price, so a coupon cannot be applied."
+  },
+  "adminFeatures": {
+    "title": "Clinic features",
+    "deposit": "Fixed deposit (EGP)",
+    "depositHint": "Charged online at booking. Leave empty to use the platform default.",
+    "clearDeposit": "Back to platform default",
+    "overridden": "custom",
+    "defaultChip": "default",
+    "resetToDefault": "Reset to the platform default",
+    "undoReset": "Undo reset",
+    "saved": "Clinic features saved",
+    "keys": {
+      "mobileApp": "Mobile app",
+      "website": "Website",
+      "guestBrowsing": "Guest browsing",
+      "patientSelfService": "Patient self-service",
+      "pushReminders": "Push reminders",
+      "smsNotifications": "SMS notifications",
+      "englishLanguage": "English language",
+      "multiBranch": "Multi-branch",
+      "videoConsultation": "Video consultations",
+      "waitingList": "Waiting list",
+      "familyAccounts": "Family accounts",
+      "whatsappReminders": "WhatsApp reminders",
+      "onlinePayments": "Online payments",
+      "insurance": "Insurance",
+      "holidayCalendar": "Holiday calendar",
+      "workingHoursTemplates": "Working-hours templates",
+      "patientRecords": "Patient records",
+      "reviews": "Reviews",
+      "promotions": "Offers",
+      "recallCampaigns": "Recall campaigns",
+      "reports": "Reports",
+      "manualReview": "Approve bookings first",
+      "publicPrices": "Public prices",
+      "liveQueue": "Live queue"
+    }
   }
 }

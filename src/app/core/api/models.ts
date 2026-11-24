@@ -230,10 +230,12 @@ export interface Clinic {
   phone: string;
   timezone: string;
   isActive: boolean;
+  /** When false, the public website and app hide consultation and service prices. */
+  showPrices: boolean;
 }
 
 export type UpdateClinicRequest = Omit<Clinic, 'id' | 'timezone' | 'isActive'>;
-export type CreateClinicRequest = UpdateClinicRequest & { timezone?: string };
+export type CreateClinicRequest = Omit<UpdateClinicRequest, 'showPrices'> & { timezone?: string };
 
 export interface CreateClinicUserRequest {
   phone: string;

@@ -74,6 +74,7 @@ export class MockBackend {
       role: 'ClinicStaff',
       preferredLanguage: 'ar',
       clinicId: CLINIC_ID,
+      isClinicAdmin: true,
     };
   }
 

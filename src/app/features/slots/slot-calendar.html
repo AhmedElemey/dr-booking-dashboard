@@ -79,6 +79,9 @@
     @if (loading()) {
       <mat-progress-bar mode="indeterminate" />
     }
+    @if (retrying()) {
+      <p class="waking-note" role="status">{{ 'slots.serverWaking' | translate }}</p>
+    }
     @if (loadError()) {
       <div class="load-error" role="alert">
         <mat-icon aria-hidden="true">error_outline</mat-icon>

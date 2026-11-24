@@ -10,6 +10,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { interval, take } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/auth/auth.service';
 import { homeFor } from '../../core/auth/guards';
 import { BrandService } from '../../core/config/brand.service';
@@ -46,6 +47,9 @@ export class Login {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+
+  /** True only on the hosted test deployment; shows the demo-data banner on the login page. */
+  protected readonly hostedTest = environment.hostedTest;
 
   protected readonly step = signal<'phone' | 'code'>('phone');
   protected readonly busy = signal(false);

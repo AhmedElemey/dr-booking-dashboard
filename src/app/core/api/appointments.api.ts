@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { apiUrl } from '../config/api-url';
 import { AppointmentQuery, CreateAppointmentRequest, DashboardAppointment, Paged } from './models';
-import { VideoLink } from './phase2.models';
+import { DashboardQueueEntry, VideoLink } from './phase2.models';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentsApi {
@@ -60,5 +60,30 @@ export class AppointmentsApi {
   /** videoConsultation: the host link; 409 VIDEO_NOT_OPEN outside the window. */
   video(id: string): Observable<VideoLink> {
     return this.http.get<VideoLink>(apiUrl(`/dashboard/appointments/${id}/video`));
+  }
+
+  /** liveQueue: today's queue, ordered: with the doctor, checked-in by arrival, then upcoming. */
+  queue(doctorId?: string): Observable<DashboardQueueEntry[]> {
+    let params = new HttpParams();
+    if (doctorId) params = params.set('doctorId', doctorId);
+    return this.http.get<DashboardQueueEntry[]>(apiUrl('/dashboard/appointments/queue'), {
+      params,
+    });
+  }
+
+  /** liveQueue: check a patient in on the day of their visit (Confirmed to CheckedIn). */
+  checkIn(id: string): Observable<DashboardAppointment> {
+    return this.http.post<DashboardAppointment>(
+      apiUrl(`/dashboard/appointments/${id}/check-in`),
+      {},
+    );
+  }
+
+  /** liveQueue: start a checked-in visit (CheckedIn to InProgress). One patient per doctor. */
+  start(id: string): Observable<DashboardAppointment> {
+    return this.http.post<DashboardAppointment>(
+      apiUrl(`/dashboard/appointments/${id}/start`),
+      {},
+    );
   }
 }

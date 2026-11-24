@@ -16,6 +16,9 @@ export interface MockAppointment {
   patientNote: string | null;
   cancelledBy: 'Patient' | 'Clinic' | null;
   cancelReason: string | null;
+  /** liveQueue: set while the patient is in the clinic. */
+  checkedInAt: string | null;
+  startedAt: string | null;
 }
 
 export interface MockPatient {
@@ -266,6 +269,9 @@ const APPOINTMENTS: [
   [0, -1, 2, 2, 'Completed', 'sv-2', null],
   [0, 3, 0, 3, 'Confirmed', 'sv-1', null],
   [1, -1, 1, 4, 'NoShow', 'sv-4', null],
+  // liveQueue: one visit with the doctor and one checked-in patient, both today.
+  [1, 0, 1, 9, 'InProgress', 'sv-3', null],
+  [0, 0, 5, 10, 'CheckedIn', 'sv-2', null],
 ];
 
 /** Old completed visits [doctor index, days ago, patient index, service id] for the recall demo. */
@@ -306,6 +312,9 @@ export function createMockState(now: DateTime = DateTime.now()): MockState {
       patientNote: note,
       cancelledBy: status === 'Cancelled' ? 'Patient' : null,
       cancelReason: status === 'Cancelled' ? 'Travelling that day' : null,
+      checkedInAt:
+        status === 'CheckedIn' || status === 'InProgress' ? slot.startsAt : null,
+      startedAt: status === 'InProgress' ? slot.startsAt : null,
     });
   });
 
@@ -328,6 +337,8 @@ export function createMockState(now: DateTime = DateTime.now()): MockState {
       patientNote: null,
       cancelledBy: null,
       cancelReason: null,
+      checkedInAt: null,
+      startedAt: null,
     });
   });
 

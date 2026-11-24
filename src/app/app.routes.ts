@@ -81,6 +81,11 @@ export const routes: Routes = [
           import('./features/waiting-list/waiting-list').then((m) => m.WaitingList),
       },
       {
+        path: 'queue',
+        ...staffFeature('liveQueue'),
+        loadComponent: () => import('./features/queue/queue').then((m) => m.Queue),
+      },
+      {
         path: 'payments',
         ...staffFeature('onlinePayments'),
         loadComponent: () => import('./features/payments/payments').then((m) => m.Payments),

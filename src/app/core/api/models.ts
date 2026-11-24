@@ -2,7 +2,13 @@
 
 export type Role = 'Patient' | 'Doctor' | 'ClinicStaff' | 'PlatformAdmin';
 export type AppLang = 'ar' | 'en';
-export type AppointmentStatus = 'Confirmed' | 'Cancelled' | 'Completed' | 'NoShow';
+export type AppointmentStatus =
+  | 'Confirmed'
+  | 'Cancelled'
+  | 'Completed'
+  | 'NoShow'
+  | 'CheckedIn'
+  | 'InProgress';
 export type SlotStatus = 'Open' | 'Reserved' | 'Blocked';
 
 export interface Paged<T> {
@@ -78,6 +84,10 @@ export interface DashboardAppointment {
   insurance?: AppointmentInsurance | null;
   /** reviews. */
   review?: { rating: number; comment?: string | null } | null;
+  /** liveQueue: when the patient announced themselves at the clinic. */
+  checkedInAt?: string | null;
+  /** liveQueue: when the doctor started the visit. */
+  startedAt?: string | null;
 }
 
 export type AppointmentMode = 'InPerson' | 'Video';

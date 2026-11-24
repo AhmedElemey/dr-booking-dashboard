@@ -94,6 +94,7 @@ describe('Shell navigation (phase 2)', () => {
       '/agenda',
       '/appointments/new',
       '/waiting-list',
+      '/queue',
     ]);
   });
 

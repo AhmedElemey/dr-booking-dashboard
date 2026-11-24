@@ -1,9 +1,11 @@
 import { HttpErrorResponse, HttpParams, HttpRequest, HttpResponse } from '@angular/common/http';
+import { DateTime } from 'luxon';
 import { firstValueFrom } from 'rxjs';
 
 import { API_ROOT } from '../config/api-url';
 import { PHASE2_FEATURE_KEYS } from '../config/brand';
 import { MockBackend } from './mock-backend';
+import { MOCK_TZ } from './mock-data';
 
 describe('mock backend (phase 2)', () => {
   let backend: MockBackend;
@@ -229,5 +231,93 @@ describe('mock backend (phase 2)', () => {
     );
     expect(res['paymentStatus']).toBe('Paid');
     expect('paymentId' in res).toBe(false);
+  });
+
+  it('liveQueue: today\'s queue is ordered with the doctor first, then checked-in, then upcoming', async () => {
+    const queue = await call<{ appointment: { status: string }; position: number }[]>(
+      'GET',
+      '/dashboard/appointments/queue',
+    );
+    if (queue.length === 0) return; // Friday: the demo clinic has no visits today
+    expect(queue.map((e) => e.position)).toEqual(queue.map((_, i) => i + 1));
+    const rank = (s: string) => (s === 'InProgress' ? 0 : s === 'CheckedIn' ? 1 : 2);
+    const ranks = queue.map((e) => rank(e.appointment.status));
+    expect([...ranks].sort((a, b) => a - b)).toEqual(ranks);
+  });
+
+  it('liveQueue: check-in, start and complete move a visit through the day', async () => {
+    const today = DateTime.now().setZone(MOCK_TZ).toISODate()!;
+    const appts = rowsOf(
+      await call<
+        | { id: string; status: string; doctor: { id: string } }[]
+        | { items: { id: string; status: string; doctor: { id: string } }[] }
+      >('GET', `/dashboard/appointments?from=${today}&to=${today}&status=Confirmed`),
+    );
+    if (appts.length === 0) return; // Friday: the demo clinic has no visits today
+    // A doctor who does not already have a patient with them.
+    const queueNow = await call<{ appointment: { status: string; doctor: { id: string } } }[]>(
+      'GET',
+      '/dashboard/appointments/queue',
+    );
+    const busyDoctors = new Set(
+      queueNow
+        .filter((e) => e.appointment.status === 'InProgress')
+        .map((e) => e.appointment.doctor.id),
+    );
+    const visit = appts.find((a) => !busyDoctors.has(a.doctor.id)) ?? appts[0];
+
+    const checkedIn = await call<{ status: string; checkedInAt: string | null }>(
+      'POST',
+      `/dashboard/appointments/${visit.id}/check-in`,
+    );
+    expect(checkedIn.status).toBe('CheckedIn');
+    expect(checkedIn.checkedInAt).toBeTruthy();
+
+    const secondCheckIn = await fail(
+      call('POST', `/dashboard/appointments/${visit.id}/check-in`),
+    );
+    expect(secondCheckIn.status).toBe(409);
+
+    const started = await call<{ status: string; startedAt: string | null }>(
+      'POST',
+      `/dashboard/appointments/${visit.id}/start`,
+    );
+    expect(started.status).toBe('InProgress');
+    expect(started.startedAt).toBeTruthy();
+
+    const completed = await call<{ status: string }>(
+      'POST',
+      `/dashboard/appointments/${visit.id}/complete`,
+    );
+    expect(completed.status).toBe('Completed');
+
+    const queue = await call<{ appointment: { id: string } }[]>(
+      'GET',
+      '/dashboard/appointments/queue',
+    );
+    expect(queue.some((e) => e.appointment.id === visit.id)).toBe(false);
+  });
+
+  it('liveQueue: one patient per doctor at a time', async () => {
+    const today = DateTime.now().setZone(MOCK_TZ).toISODate()!;
+    const queue = await call<
+      { appointment: { status: string; doctor: { id: string } } }[]
+    >('GET', '/dashboard/appointments/queue');
+    const busyDoctors = new Set(
+      queue
+        .filter((e) => e.appointment.status === 'InProgress')
+        .map((e) => e.appointment.doctor.id),
+    );
+    const appts = rowsOf(
+      await call<
+        | { id: string; status: string; doctor: { id: string } }[]
+        | { items: { id: string; status: string; doctor: { id: string } }[] }
+      >('GET', `/dashboard/appointments?from=${today}&to=${today}&status=Confirmed`),
+    );
+    const next = appts.find((a) => busyDoctors.has(a.doctor.id));
+    if (!next) return; // no doctor with a visit in progress and another confirmed today
+    await call('POST', `/dashboard/appointments/${next.id}/check-in`);
+    const busy = await fail(call('POST', `/dashboard/appointments/${next.id}/start`));
+    expect(busy.status).toBe(409);
   });
 });

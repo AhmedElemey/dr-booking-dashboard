@@ -263,6 +263,9 @@ const APPOINTMENTS: [
   [0, -1, 2, 2, 'Completed', 'sv-2', null],
   [0, 3, 0, 3, 'Confirmed', 'sv-1', null],
   [1, -1, 1, 4, 'NoShow', 'sv-4', null],
+  // Pending bookings waiting for the clinic to approve or reject them.
+  [0, 1, 3, 8, 'Pending', 'sv-1', 'إعادة كشف'],
+  [2, 2, 2, 10, 'Pending', 'sv-6', null],
 ];
 
 /** Old completed visits [doctor index, days ago, patient index, service id] for the recall demo. */

@@ -90,7 +90,19 @@ describe('availableActions (spec transition table)', () => {
     },
   );
 
-  it('liveQueue: a checked-in visit can complete or no-show', () => {
+  it('liveQueue: a checked-in visit can be cancelled but not closed out before the slot starts', () => {
+    expect(availableActions('CheckedIn', STARTS, ENDS, before)).toEqual({
+      approve: false,
+      reject: false,
+      reschedule: false,
+      cancel: true,
+      complete: false,
+      noShow: false,
+      correct: null,
+    });
+  });
+
+  it('liveQueue: a checked-in visit can complete or no-show once the slot started', () => {
     expect(availableActions('CheckedIn', STARTS, ENDS, after)).toEqual({
       approve: false,
       reject: false,

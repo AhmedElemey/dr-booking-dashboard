@@ -886,7 +886,8 @@
       "reports": "Reports",
       "manualReview": "Approve bookings first",
       "publicPrices": "Public prices",
-      "liveQueue": "Live queue"
+      "liveQueue": "Live queue",
+      "whatsappOtp": "WhatsApp login codes"
     }
   }
 }

@@ -51,6 +51,17 @@ describe('errorInterceptor', () => {
     expect(open.mock.calls[0][0]).toBe((en.errors as Record<string, string>)[code]);
   });
 
+  it('shows the API detail for INVALID_TRANSITION when it has one', () => {
+    http.get(`${API_ROOT}/x`).subscribe({ error: () => undefined });
+    backend
+      .expectOne(`${API_ROOT}/x`)
+      .flush(
+        { status: 409, code: 'INVALID_TRANSITION', detail: 'The visit has not started yet.' },
+        { status: 409, statusText: 'err' },
+      );
+    expect(open.mock.calls[0][0]).toBe('The visit has not started yet.');
+  });
+
   it('shows Arabic messages when the UI language is Arabic', () => {
     translate.use('ar');
     fail('SLOT_TAKEN', 409);

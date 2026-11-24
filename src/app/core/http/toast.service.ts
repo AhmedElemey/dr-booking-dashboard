@@ -41,6 +41,14 @@ export class ToastService {
       );
       return;
     }
+    if (code === 'INVALID_TRANSITION') {
+      // The API says why (for example "The visit has not started yet."), which beats the generic text.
+      const detail = problemOf(error)?.detail;
+      if (typeof detail === 'string' && detail.trim().length > 0) {
+        this.open(detail, 'toast-error');
+        return;
+      }
+    }
     const key = (code === 'COUPON_INVALID' && couponReasonKey(error)) || errorMessageKey(code);
     let message = this.translate.instant(key);
     if (code === 'VALIDATION_FAILED') {

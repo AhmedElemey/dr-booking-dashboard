@@ -92,3 +92,29 @@ export function couponReasonKey(error: unknown): string | null {
     ? `couponReason.${reason}`
     : null;
 }
+
+/** Known English `detail` texts of INVALID_TRANSITION, mapped to localized keys (`transitionDetail.*`). */
+export const TRANSITION_DETAILS: Record<string, string> = {
+  'The visit has not started yet.': 'notStarted',
+  'Check-in opens on the day of the visit.': 'checkInDay',
+  'The visit has already started; mark it completed or no-show instead.': 'alreadyStarted',
+  'Another patient is with the doctor now.': 'anotherInRoom',
+  'Only a completed or no-show visit can be corrected.': 'correctOnly',
+  'Status corrections are allowed within 24 hours of closing the visit.': 'correctWindow',
+  'The appointment was changed by someone else. Reload and try again.': 'changedByOther',
+  'The appointment has no insurance claim.': 'noInsuranceClaim',
+};
+
+/** The localized key (and params) for a known INVALID_TRANSITION detail, or null to show the raw detail. */
+export function transitionDetailKey(
+  detail: string,
+): { key: string; status?: string } | null {
+  const text = detail.trim();
+  const known = TRANSITION_DETAILS[text];
+  if (known) return { key: `transitionDetail.${known}` };
+  const already = /^The appointment is already (\w+)\.$/.exec(text);
+  if (already) {
+    return { key: 'transitionDetail.alreadyStatus', status: already[1] };
+  }
+  return null;
+}

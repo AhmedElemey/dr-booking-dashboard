@@ -115,7 +115,9 @@ describe('AppointmentDrawer phase 2 blocks', () => {
     const text = h.el.textContent ?? '';
     expect(text).toContain('Deposit paid');
     expect(h.el.querySelector('.deposit-balance')?.textContent).toContain('200');
-    expect(internals(h.fixture)['canMarkPaid']()).toBe(false);
+    // The clinic balance is recorded in cash, so the button stays and names the amount.
+    expect(internals(h.fixture)['canMarkPaid']()).toBe(true);
+    expect(text).toContain('Mark balance paid (cash): 200');
     expect(internals(h.fixture)['canRefund']()).toBe(true);
   });
 
@@ -162,5 +164,15 @@ describe('AppointmentDrawer phase 2 blocks', () => {
     expect(req.request.body).toEqual({ status: 'Approved', note: 'covered' });
     req.flush({});
     pendingGet(h.backend, '/dashboard/appointments/a1').flush(appointment());
+  });
+
+  it('keeps "Mark paid" for a deposit-paid visit and labels it with the balance', async () => {
+    const h = await open(['onlinePayments'], {
+      paymentStatus: 'DepositPaid',
+      totalEgp: 270,
+      depositPaidEgp: 100,
+    });
+    expect(internals(h.fixture)['canMarkPaid']()).toBe(true);
+    expect(internals(h.fixture)['depositBalance']()).toBe(170);
   });
 });

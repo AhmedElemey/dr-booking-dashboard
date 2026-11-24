@@ -244,7 +244,12 @@
     "reject": "Reject",
     "insuranceApproved": "Insurance approved.",
     "insuranceRejected": "Insurance rejected.",
-    "review": "Patient review"
+    "review": "Patient review",
+    "correctTitle": "Correct visit status",
+    "correctToNoShow": "Correct to no-show",
+    "correctToCompleted": "Correct to completed",
+    "correctConfirm": "Save correction",
+    "corrected": "Status corrected"
   },
   "slotPicker": {
     "none": "No open slots in the next 14 days.",
@@ -574,7 +579,9 @@
     "lastVisit": "Last visit",
     "visits": "Appointments",
     "open": "Open record",
-    "record": "Patient record"
+    "record": "Patient record",
+    "noShows": "No-shows",
+    "noShowCount": "{{count}} no-shows"
   },
   "records": {
     "recordOf": "Record of",

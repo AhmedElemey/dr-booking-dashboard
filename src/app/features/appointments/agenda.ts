@@ -25,7 +25,15 @@ import { AppointmentDrawer } from './appointment-drawer';
 
 export const AGENDA_REFRESH_MS = 60_000;
 
-const STATUSES: AppointmentStatus[] = ['Pending', 'Confirmed', 'Completed', 'NoShow', 'Cancelled'];
+const STATUSES: AppointmentStatus[] = [
+  'Pending',
+  'Confirmed',
+  'CheckedIn',
+  'InProgress',
+  'Completed',
+  'NoShow',
+  'Cancelled',
+];
 
 interface DayGroup {
   key: string;
@@ -118,6 +126,8 @@ export class Agenda {
       Completed: 0,
       NoShow: 0,
       Cancelled: 0,
+      CheckedIn: 0,
+      InProgress: 0,
     };
     for (const a of this.items()) counts[a.status]++;
     return counts;

@@ -378,3 +378,11 @@ export interface VideoLink {
   opensAt: string;
   closesAt: string;
 }
+
+// ---- live queue ----
+
+/** liveQueue: one row of today's queue: the visit and its 1-based position. */
+export interface DashboardQueueEntry {
+  appointment: DashboardAppointment;
+  position: number;
+}

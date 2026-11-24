@@ -125,6 +125,8 @@ export class MockBackend {
       patientNote: a.patientNote,
       cancelledBy: a.cancelledBy,
       cancelReason: a.cancelReason,
+      checkedInAt: a.checkedInAt,
+      startedAt: a.startedAt,
       ...this.phase2Fields(a, doctor.consultationFeeEgp ?? null, service?.priceEgp ?? null),
     };
   }
@@ -292,6 +294,73 @@ export class MockBackend {
         return this.page(items, query);
       },
     ],
+    // liveQueue: today's queue (registered before the by-id GET so `queue` is not read as an id)
+    [
+      'GET',
+      /^\/dashboard\/appointments\/queue$/,
+      ({ query, role }) => {
+        const doctorId = query.get('doctorId');
+        const today = this.localDate(DateTime.now().toUTC().toISO()!);
+        const now = DateTime.now();
+        const inScope = this.state.appointments
+          .filter((a) => {
+            const slot = this.state.slots.find((s) => s.id === a.slotId)!;
+            if (this.localDate(slot.startsAt) !== today) return false;
+            if (role === 'doctor' && slot.doctorId !== DOCTOR_ID) return false;
+            if (doctorId && slot.doctorId !== doctorId) return false;
+            if (a.status === 'InProgress' || a.status === 'CheckedIn') return true;
+            return a.status === 'Confirmed' && DateTime.fromISO(slot.startsAt) >= now;
+          })
+          .sort((a, b) => {
+            const rank = (s: AppointmentStatus) =>
+              s === 'InProgress' ? 0 : s === 'CheckedIn' ? 1 : 2;
+            const byRank = rank(a.status) - rank(b.status);
+            if (byRank !== 0) return byRank;
+            const at = (x: MockAppointment) =>
+              x.status === 'InProgress'
+                ? (x.startedAt ?? '')
+                : x.status === 'CheckedIn'
+                  ? (x.checkedInAt ?? '')
+                  : this.startsAt(x).toISO()!;
+            const byTime = at(a).localeCompare(at(b));
+            return byTime !== 0 ? byTime : a.id.localeCompare(b.id);
+          });
+        return inScope.map((a, i) => ({ appointment: this.dto(a), position: i + 1 }));
+      },
+    ],
+    [
+      'POST',
+      /^\/dashboard\/appointments\/([^/]+)\/check-in$/,
+      ({ params, role }) => {
+        const a = this.appointmentOrThrow(params[0], role);
+        this.requireConfirmed(a);
+        const today = this.localDate(DateTime.now().toUTC().toISO()!);
+        if (this.localDate(this.startsAt(a).toISO()!) !== today)
+          throw new ApiError(409, 'INVALID_TRANSITION');
+        a.status = 'CheckedIn';
+        a.checkedInAt = DateTime.now().toUTC().toISO();
+        return this.dto(a);
+      },
+    ],
+    [
+      'POST',
+      /^\/dashboard\/appointments\/([^/]+)\/start$/,
+      ({ params, role }) => {
+        const a = this.appointmentOrThrow(params[0], role);
+        if (a.status !== 'CheckedIn') throw new ApiError(409, 'INVALID_TRANSITION');
+        const doctorId = this.state.slots.find((s) => s.id === a.slotId)!.doctorId;
+        const busy = this.state.appointments.some(
+          (x) =>
+            x.id !== a.id &&
+            x.status === 'InProgress' &&
+            this.state.slots.find((s) => s.id === x.slotId)!.doctorId === doctorId,
+        );
+        if (busy) throw new ApiError(409, 'DOCTOR_BUSY');
+        a.status = 'InProgress';
+        a.startedAt = DateTime.now().toUTC().toISO();
+        return this.dto(a);
+      },
+    ],
     [
       'GET',
       /^\/dashboard\/appointments\/([^/]+)$/,
@@ -333,6 +402,8 @@ export class MockBackend {
           patientNote: (body['patientNote'] as string | null) ?? null,
           cancelledBy: null,
           cancelReason: null,
+          checkedInAt: null,
+          startedAt: null,
         };
         this.state.appointments.push(appointment);
         if (mode === 'Video') this.state.p2.extras[appointment.id] = { mode };
@@ -657,9 +728,22 @@ export class MockBackend {
           fullName: String(body['fullName']),
           role: body['role'] as AdminUser['role'],
           isActive: true,
+          isAdmin: body['role'] === 'ClinicStaff' ? body['isAdmin'] === true : null,
         };
         return user;
       },
+    ],
+    [
+      'PATCH',
+      /^\/admin\/users\/([^/]+)\/admin$/,
+      ({ params, body }) => ({
+        id: params[0],
+        phone: '',
+        fullName: null,
+        role: 'ClinicStaff',
+        isActive: true,
+        isAdmin: Boolean(body['isAdmin']),
+      }),
     ],
     [
       'PATCH',
@@ -676,10 +760,19 @@ export class MockBackend {
 
   private readonly phase2 = phase2Routes(this);
 
-  private finish(id: string, role: Ctx['role'], status: AppointmentStatus) {
+  private finish(
+    id: string,
+    role: Ctx['role'],
+    status: 'Completed' | 'NoShow',
+  ): DashboardAppointment {
     const a = this.appointmentOrThrow(id, role);
-    this.requireConfirmed(a);
-    if (this.startsAt(a) > DateTime.now()) throw new ApiError(409, 'INVALID_TRANSITION');
+    // liveQueue widens the close-out rule: complete from checked-in or with-the-doctor,
+    // no-show from checked-in.
+    const allowed: AppointmentStatus[] =
+      status === 'Completed' ? ['Confirmed', 'CheckedIn', 'InProgress'] : ['Confirmed', 'CheckedIn'];
+    if (!allowed.includes(a.status)) throw new ApiError(409, 'INVALID_TRANSITION');
+    if (a.status !== 'InProgress' && this.startsAt(a) > DateTime.now())
+      throw new ApiError(409, 'INVALID_TRANSITION');
     this.setStatus(a, status);
     return this.dto(a);
   }

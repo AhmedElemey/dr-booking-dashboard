@@ -2,7 +2,8 @@
 
 export type Role = 'Patient' | 'Doctor' | 'ClinicStaff' | 'PlatformAdmin';
 export type AppLang = 'ar' | 'en';
-export type AppointmentStatus = 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed' | 'NoShow';
+export type AppointmentStatus =
+  'Pending' | 'Confirmed' | 'Cancelled' | 'Completed' | 'NoShow' | 'CheckedIn' | 'InProgress';
 export type SlotStatus = 'Open' | 'Reserved' | 'Blocked';
 
 export interface Paged<T> {
@@ -78,6 +79,10 @@ export interface DashboardAppointment {
   insurance?: AppointmentInsurance | null;
   /** reviews. */
   review?: { rating: number; comment?: string | null } | null;
+  /** liveQueue: when the patient announced themselves at the clinic. */
+  checkedInAt?: string | null;
+  /** liveQueue: when the doctor started the visit. */
+  startedAt?: string | null;
 }
 
 export type AppointmentMode = 'InPerson' | 'Video';
@@ -230,10 +235,12 @@ export interface Clinic {
   phone: string;
   timezone: string;
   isActive: boolean;
+  /** When false, the public website and app hide consultation and service prices. */
+  showPrices: boolean;
 }
 
 export type UpdateClinicRequest = Omit<Clinic, 'id' | 'timezone' | 'isActive'>;
-export type CreateClinicRequest = UpdateClinicRequest & { timezone?: string };
+export type CreateClinicRequest = Omit<UpdateClinicRequest, 'showPrices'> & { timezone?: string };
 
 export interface CreateClinicUserRequest {
   phone: string;
@@ -242,6 +249,7 @@ export interface CreateClinicUserRequest {
   nameAr?: string;
   nameEn?: string;
   specialtyId?: string;
+  isAdmin?: boolean;
 }
 
 export interface AdminUser {
@@ -252,4 +260,5 @@ export interface AdminUser {
   isActive: boolean;
   clinicId?: string | null;
   doctorId?: string | null;
+  isAdmin?: boolean | null;
 }

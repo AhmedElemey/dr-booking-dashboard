@@ -9,7 +9,7 @@ import { FeaturesService } from '../config/features.service';
 
 export type AppLanguage = 'ar' | 'en';
 
-const LANGUAGE_KEY = 'moonlight.language';
+const LANGUAGE_KEY = 'drbooking.language';
 
 @Injectable({ providedIn: 'root' })
 export class LanguageService {

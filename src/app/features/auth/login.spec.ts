@@ -111,7 +111,7 @@ describe('Login', () => {
     expect(el.querySelector('[role=alert]')?.textContent).toContain(
       applyBrand(en, 'en').errors.ROLE_NOT_ALLOWED,
     );
-    expect(localStorage.getItem('moonlight.refreshToken')).toBeNull();
+    expect(localStorage.getItem('drbooking.refreshToken')).toBeNull();
   });
 
   it('hides the demo banner by default and shows it only when hostedTest is on', async () => {

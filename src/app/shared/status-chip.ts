@@ -44,6 +44,14 @@ import { AppointmentStatus, SlotStatus } from '../core/api/models';
       background: var(--ml-cancelled-bg);
       color: var(--ml-cancelled);
     }
+    .chip-checkedin {
+      background: var(--ml-completed-bg);
+      color: var(--ml-completed);
+    }
+    .chip-inprogress {
+      background: var(--ml-confirmed-bg);
+      color: var(--ml-confirmed);
+    }
   `,
 })
 export class StatusChip {

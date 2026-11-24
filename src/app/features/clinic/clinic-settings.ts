@@ -94,6 +94,9 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
             <input matInput [value]="timezone()" readonly dir="ltr" />
             <mat-hint>{{ 'clinic.timezoneHint' | translate }}</mat-hint>
           </mat-form-field>
+          <mat-slide-toggle class="full" formControlName="showPrices">{{
+            'clinic.showPrices' | translate
+          }}</mat-slide-toggle>
         </div>
 
         @if (canEdit()) {
@@ -142,6 +145,7 @@ export class ClinicSettings {
     addressEn: [''],
     city: ['', Validators.required],
     phone: ['', Validators.required],
+    showPrices: [true],
     latitude: [null as number | null, [Validators.min(-90), Validators.max(90)]],
     longitude: [null as number | null, [Validators.min(-180), Validators.max(180)]],
   });
@@ -160,6 +164,7 @@ export class ClinicSettings {
       addressEn: clinic.addressEn ?? '',
       city: clinic.city,
       phone: clinic.phone,
+      showPrices: clinic.showPrices,
       latitude: clinic.latitude ?? null,
       longitude: clinic.longitude ?? null,
     });
@@ -180,6 +185,7 @@ export class ClinicSettings {
         addressEn: v.addressEn!.trim(),
         city: v.city!.trim(),
         phone: v.phone!.trim(),
+        showPrices: v.showPrices ?? true,
         latitude: v.latitude === null || v.latitude === ('' as unknown) ? null : Number(v.latitude),
         longitude:
           v.longitude === null || v.longitude === ('' as unknown) ? null : Number(v.longitude),

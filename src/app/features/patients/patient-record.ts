@@ -87,6 +87,11 @@ const KIND_ICONS: Record<string, string> = {
           @if (detail(); as d) {
             <span class="phone ltr-text muted">{{ d.patient.phone }}</span>
           }
+          @if (detail()?.noShowCount; as noShows) {
+            @if (noShows > 0) {
+              <span class="chip warn">{{ 'patients.noShowCount' | translate: { count: noShows } }}</span>
+            }
+          }
         </h1>
         @if ((detail()?.familyMembers ?? []).length > 0) {
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -268,6 +273,19 @@ const KIND_ICONS: Record<string, string> = {
     .phone {
       font: var(--mat-sys-body-large);
       margin-inline-start: 8px;
+    }
+    .chip {
+      display: inline-block;
+      padding-block: 2px;
+      padding-inline: 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-inline-start: 8px;
+    }
+    .chip.warn {
+      background: var(--ml-noshow-bg);
+      color: var(--ml-noshow);
     }
     .layout {
       display: grid;

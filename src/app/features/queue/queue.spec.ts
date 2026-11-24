@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 
 import { provideFixedClock, provideTestTranslations } from '../../../testing/test-providers';
 import { API_ROOT } from '../../core/config/api-url';
-import { Queue } from './queue';
+import { QUEUE_REFRESH_MS, Queue } from './queue';
 
 const entry = (
   id: string,
@@ -49,7 +49,7 @@ describe('Queue', () => {
     return { backend, fixture, req };
   };
 
-  it('lists today\'s queue with positions and status chips', async () => {
+  it("lists today's queue with positions and status chips", async () => {
     const { backend, fixture, req } = await setup();
     req.flush([entry('a1', 'InProgress', 1, 'Ali'), entry('a2', 'CheckedIn', 2, 'Mona')]);
     await fixture.whenStable();
@@ -111,5 +111,57 @@ describe('Queue', () => {
     backend.expectOne(`${API_ROOT}/dashboard/appointments/queue`).flush([]);
     await fixture.whenStable();
     backend.verify();
+  });
+
+  it('marks a checked-in patient as did not attend', async () => {
+    const { backend, fixture, req } = await setup();
+    req.flush([entry('a1', 'CheckedIn', 1)]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const buttons: HTMLButtonElement[] = Array.from(
+      fixture.nativeElement.querySelectorAll('tbody button'),
+    );
+    const noShow = buttons.find((b) => b.textContent?.includes("Didn't attend"));
+    expect(noShow).toBeTruthy();
+    noShow?.click();
+    await fixture.whenStable();
+
+    const action = backend.expectOne(`${API_ROOT}/dashboard/appointments/a1/no-show`);
+    expect(action.request.method).toBe('POST');
+    action.flush({ ...entry('a1', 'NoShow', 1).appointment, status: 'NoShow' });
+    backend.expectOne(`${API_ROOT}/dashboard/appointments/queue`).flush([]);
+    await fixture.whenStable();
+    backend.verify();
+  });
+
+  it('has no did-not-attend button for a visit with the doctor', async () => {
+    const { backend, fixture, req } = await setup();
+    req.flush([entry('a1', 'InProgress', 1)]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain("Didn't attend");
+    backend.verify();
+  });
+
+  it('reloads the queue every 30 seconds without the refresh button', async () => {
+    vi.useFakeTimers();
+    try {
+      const { backend, fixture, req } = await setup();
+      req.flush([entry('a1', 'Confirmed', 1)]);
+
+      await vi.advanceTimersByTimeAsync(QUEUE_REFRESH_MS);
+      backend
+        .expectOne(`${API_ROOT}/dashboard/appointments/queue`)
+        .flush([entry('a1', 'Confirmed', 1), entry('a2', 'CheckedIn', 2, 'Sara')]);
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Sara');
+      backend.verify();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

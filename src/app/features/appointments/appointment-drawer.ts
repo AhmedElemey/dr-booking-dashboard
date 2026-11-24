@@ -123,7 +123,7 @@ export class AppointmentDrawer implements OnInit {
     return (
       !!a &&
       a.status !== 'Cancelled' &&
-      (status === 'Unpaid' || status === 'Pending') &&
+      (status === 'Unpaid' || status === 'Pending' || status === 'DepositPaid') &&
       (a.totalEgp ?? 0) > 0
     );
   });

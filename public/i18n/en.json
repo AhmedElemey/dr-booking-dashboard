@@ -396,6 +396,7 @@
     "longitude": "Longitude",
     "timezone": "Time zone",
     "timezoneHint": "All appointment and slot times are shown in this time zone.",
+    "showPrices": "Show prices on the website and app",
     "saved": "Clinic saved"
   },
   "admin": {

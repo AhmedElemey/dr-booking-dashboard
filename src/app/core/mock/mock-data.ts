@@ -68,6 +68,7 @@ const clinics: Clinic[] = [
     phone: '+20223456789',
     timezone: MOCK_TZ,
     isActive: true,
+    showPrices: true,
   },
   {
     id: 'clinic-smile',
@@ -81,6 +82,7 @@ const clinics: Clinic[] = [
     phone: '+20233456789',
     timezone: MOCK_TZ,
     isActive: true,
+    showPrices: true,
   },
   {
     id: 'clinic-delta',
@@ -92,6 +94,7 @@ const clinics: Clinic[] = [
     phone: '+20502345678',
     timezone: MOCK_TZ,
     isActive: false,
+    showPrices: true,
   },
 ];
 

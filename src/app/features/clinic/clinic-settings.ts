@@ -1,14 +1,23 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { ClinicApi } from '../../core/api/clinic.api';
 import { Clinic } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
+import { FeaturesService } from '../../core/config/features.service';
 import { ToastService } from '../../core/http/toast.service';
 import { ClinicTime } from '../../core/time/clinic-time.service';
 
@@ -24,6 +33,7 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
     MatError,
     MatInput,
     MatIcon,
+    MatSlideToggle,
     TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -97,6 +107,11 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
           <mat-slide-toggle class="full" formControlName="showPrices">{{
             'clinic.showPrices' | translate
           }}</mat-slide-toggle>
+          @if (!pricesAllowed()) {
+            <p class="full locked muted">
+              <mat-icon>lock</mat-icon>{{ 'clinic.pricesLocked' | translate }}
+            </p>
+          }
         </div>
 
         @if (canEdit()) {
@@ -116,7 +131,8 @@ import { ClinicTime } from '../../core/time/clinic-time.service';
     .box {
       padding: 24px;
     }
-    .readonly {
+    .readonly,
+    .locked {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -133,8 +149,11 @@ export class ClinicSettings {
   private readonly toast = inject(ToastService);
   private readonly auth = inject(AuthService);
   private readonly clinicTime = inject(ClinicTime);
+  private readonly features = inject(FeaturesService);
 
   protected readonly canEdit = computed(() => this.auth.role() === 'ClinicStaff');
+  /** Super admin's publicPrices feature for this clinic; when off, the clinic's own switch is locked. */
+  protected readonly pricesAllowed = computed(() => this.features.features().publicPrices);
   protected readonly saving = signal(false);
   protected readonly timezone = signal('Africa/Cairo');
 
@@ -152,6 +171,12 @@ export class ClinicSettings {
 
   constructor() {
     if (!this.canEdit()) this.form.disable();
+    effect(() => {
+      const control = this.form.controls.showPrices;
+      if (!this.canEdit()) return;
+      if (this.pricesAllowed()) control.enable({ emitEvent: false });
+      else control.disable({ emitEvent: false });
+    });
     this.api.get().subscribe((clinic) => this.apply(clinic));
   }
 

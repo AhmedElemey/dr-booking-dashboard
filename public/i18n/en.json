@@ -39,6 +39,7 @@
     "account": "Account",
     "logout": "Sign out",
     "waitingList": "Waiting list",
+    "queue": "Queue",
     "patients": "Patients",
     "payments": "Payments",
     "reviews": "Reviews",
@@ -61,6 +62,8 @@
     "Completed": "Completed",
     "NoShow": "No-show",
     "Cancelled": "Cancelled",
+    "CheckedIn": "Checked in",
+    "InProgress": "With the doctor",
     "Open": "Open",
     "Reserved": "Reserved",
     "Blocked": "Blocked"
@@ -149,7 +152,8 @@
       "reviews": "Reviews",
       "promotions": "Promotions and coupons",
       "recallCampaigns": "Recall campaigns",
-      "reports": "Reports"
+      "reports": "Reports",
+      "liveQueue": "Live queue"
     }
   },
   "account": {
@@ -401,6 +405,7 @@
     "longitude": "Longitude",
     "timezone": "Time zone",
     "timezoneHint": "All appointment and slot times are shown in this time zone.",
+    "showPrices": "Show prices on the website and app",
     "saved": "Clinic saved"
   },
   "admin": {
@@ -411,6 +416,7 @@
       "active": "Active"
     },
     "addUser": "Add user",
+    "clinicAdmin": "Clinic admin (manages staff and corrections)",
     "noClinics": "No clinics yet.",
     "users": "Accounts",
     "usersEmpty": "Accounts you create in this session appear here.",
@@ -525,6 +531,23 @@
     },
     "notify": "Notify",
     "notified": "The patient was notified."
+  },
+  "queue": {
+    "title": "Queue",
+    "intro": "Today's visits in order: who is with the doctor, who has checked in, and who is still coming.",
+    "empty": "The queue is empty.",
+    "col": {
+      "position": "#",
+      "checkedIn": "Checked in"
+    },
+    "checkIn": "Check in",
+    "start": "Start",
+    "complete": "Complete",
+    "noShow": "Didn't attend",
+    "noShowDone": "Marked as did not attend.",
+    "checkedIn": "The patient is checked in.",
+    "started": "The visit started.",
+    "completed": "The visit is complete."
   },
   "payments": {
     "title": "Payments",

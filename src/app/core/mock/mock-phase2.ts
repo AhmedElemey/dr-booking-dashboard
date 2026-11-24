@@ -736,7 +736,7 @@ export function phase2Routes(backend: MockBackend): [string, RegExp, Handler][] 
         if (a.status !== 'Confirmed' || DateTime.now() < opens || DateTime.now() > closes)
           throw new ApiError(409, 'VIDEO_NOT_OPEN');
         return {
-          joinUrl: `https://meet.jit.si/moonlight-${a.id}-host`,
+          joinUrl: `https://meet.jit.si/drbooking-${a.id}-host`,
           opensAt: opens.toUTC().toISO(),
           closesAt: closes.toUTC().toISO(),
         };

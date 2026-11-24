@@ -15,7 +15,7 @@ import {
 import { AuthApi } from '../api/auth.api';
 import { AppLang, CurrentUser, Role, TokenResponse } from '../api/models';
 
-export const REFRESH_TOKEN_KEY = 'moonlight.refreshToken';
+export const REFRESH_TOKEN_KEY = 'drbooking.refreshToken';
 
 /** Thrown by `verifyOtp` when a Patient account signs in to the staff dashboard. */
 export class RoleNotAllowedError extends Error {

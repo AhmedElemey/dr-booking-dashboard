@@ -67,7 +67,8 @@
         "reviews",
         "promotions",
         "recallCampaigns",
-        "reports"
+        "reports",
+        "liveQueue"
       ],
       "properties": {
         "mobileApp": { "type": "boolean" },
@@ -90,7 +91,8 @@
         "reviews": { "type": "boolean" },
         "promotions": { "type": "boolean" },
         "recallCampaigns": { "type": "boolean" },
-        "reports": { "type": "boolean" }
+        "reports": { "type": "boolean" },
+        "liveQueue": { "type": "boolean" }
       }
     }
   },

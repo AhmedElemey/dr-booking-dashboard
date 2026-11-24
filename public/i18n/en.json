@@ -345,6 +345,7 @@
       "nonexistent": "That local time does not exist on this date (clock change)."
     },
     "loadError": "Couldn't load the slots. Check the connection and try again.",
+    "serverWaking": "The server is waking up, a few seconds…",
     "retry": "Retry"
   },
   "bulk": {

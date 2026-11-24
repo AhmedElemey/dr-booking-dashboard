@@ -63,7 +63,7 @@ export interface UserDialogData {
               type="tel"
               formControlName="phone"
               dir="ltr"
-              placeholder="01X XXXX XXXX"
+              placeholder="010 1234 5678"
             />
             <mat-hint>{{ 'login.phoneHint' | translate }}</mat-hint>
             @if (form.controls.phone.hasError('required')) {

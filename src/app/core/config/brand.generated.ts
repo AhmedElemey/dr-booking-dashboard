@@ -37,6 +37,7 @@ export const BRAND = {
     "promotions": false,
     "recallCampaigns": false,
     "reports": false,
-    "liveQueue": false
+    "liveQueue": false,
+    "publicPrices": true
   }
 } as const;

@@ -154,7 +154,8 @@
       "promotions": "Promotions and coupons",
       "recallCampaigns": "Recall campaigns",
       "reports": "Reports",
-      "liveQueue": "Live queue"
+      "liveQueue": "Live queue",
+      "whatsappOtp": "WhatsApp login codes"
     }
   },
   "account": {
@@ -886,7 +887,8 @@
       "reports": "Reports",
       "manualReview": "Approve bookings first",
       "publicPrices": "Public prices",
-      "liveQueue": "Live queue"
+      "liveQueue": "Live queue",
+      "whatsappOtp": "WhatsApp login codes"
     }
   }
 }

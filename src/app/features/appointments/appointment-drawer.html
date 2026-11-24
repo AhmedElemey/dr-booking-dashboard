@@ -1,63 +1,378 @@
-import { DateTime } from 'luxon';
+<app-drawer [heading]="heading()" (closed)="closed.emit()">
+  @if (loading()) {
+    <div class="center"><mat-spinner diameter="36" /></div>
+  } @else if (appointment(); as a) {
+    <div class="head">
+      <app-status-chip [status]="a.status" />
+      @if (features.isOn('videoConsultation') && a.mode === 'Video') {
+        <span class="pill info mode-badge"
+          ><mat-icon aria-hidden="true">videocam</mat-icon>{{ 'drawer.video' | translate }}</span
+        >
+      }
+    </div>
 
-import { AppointmentStatus } from '../../core/api/models';
+    <dl>
+      <dt><mat-icon>schedule</mat-icon>{{ 'drawer.when' | translate }}</dt>
+      <dd>
+        <div>{{ clinicTime.dateLong(a.startsAt, a.timezone) }}</div>
+        <div class="time ltr-text">{{ clinicTime.range(a.startsAt, a.endsAt, a.timezone) }}</div>
+      </dd>
 
-export interface AppointmentActions {
-  approve: boolean;
-  reject: boolean;
-  reschedule: boolean;
-  cancel: boolean;
-  complete: boolean;
-  noShow: boolean;
-  /** Q5: target status for correcting a mistaken terminal status, or null when not allowed. */
-  correct: 'Completed' | 'NoShow' | null;
-}
+      <dt><mat-icon>person</mat-icon>{{ 'drawer.patient' | translate }}</dt>
+      <dd>
+        <div dir="auto">{{ a.patient.fullName || '-' }}</div>
+        <a class="ltr-text" [href]="'tel:' + a.patient.phone">{{ a.patient.phone }}</a>
+      </dd>
 
-export const NO_ACTIONS: AppointmentActions = {
-  approve: false,
-  reject: false,
-  reschedule: false,
-  cancel: false,
-  complete: false,
-  noShow: false,
-  correct: null,
-};
+      @if (features.isOn('familyAccounts') && a.familyMember; as m) {
+        <dt><mat-icon>family_restroom</mat-icon>{{ 'drawer.forMember' | translate }}</dt>
+        <dd class="family">
+          {{
+            'drawer.forMemberLine'
+              | translate
+                : {
+                    name: m.fullName,
+                    relation: ('family.relation.' + m.relation | translate),
+                    booker: a.patient.fullName || a.patient.phone,
+                  }
+          }}
+        </dd>
+      }
 
-/**
- * Which status actions the clinic can take on an appointment (spec section 3 transition table).
- * Only `Pending`, `Confirmed`, `CheckedIn` and `InProgress` appointments can change; `Cancelled` is terminal.
- * A `Pending` booking can only be approved or rejected. For `Confirmed`, cancel is allowed until the slot
- * starts; complete and no-show only once it has started. With liveQueue a checked-in visit can still
- * complete or no-show, and a visit with the doctor can complete. `Completed` and `NoShow` can be
- * corrected into each other within 24 hours (Q5): the server keys the window off the close-out time;
- * the UI approximates it as 24 hours after the visit end and the server stays authoritative
- * (`409 INVALID_TRANSITION` outside it).
- */
-export function availableActions(
-  status: AppointmentStatus,
-  startsAt: string,
-  endsAt: string,
-  now: DateTime,
-): AppointmentActions {
-  if (status === 'Pending') return { ...NO_ACTIONS, approve: true, reject: true };
-  if (status === 'Completed' || status === 'NoShow') {
-    const withinWindow = now <= DateTime.fromISO(endsAt).plus({ hours: 24 });
-    return {
-      ...NO_ACTIONS,
-      correct: withinWindow ? (status === 'Completed' ? 'NoShow' : 'Completed') : null,
-    };
+      <dt><mat-icon>medical_services</mat-icon>{{ 'drawer.doctor' | translate }}</dt>
+      <dd dir="auto">{{ a.doctor.name }}</dd>
+
+      <dt><mat-icon>healing</mat-icon>{{ 'drawer.service' | translate }}</dt>
+      <dd>
+        @if (a.service; as s) {
+          <span dir="auto">{{ s.name }}</span>
+          <span class="muted">({{ s.durationMinutes }} {{ 'common.min' | translate }})</span>
+        } @else {
+          <span class="muted">{{ 'drawer.noService' | translate }}</span>
+        }
+      </dd>
+
+      @if (features.isOn('videoConsultation')) {
+        <dt>
+          <mat-icon>{{ a.mode === 'Video' ? 'videocam' : 'meeting_room' }}</mat-icon
+          >{{ 'drawer.mode' | translate }}
+        </dt>
+        <dd>
+          {{ 'drawer.modes.' + (a.mode ?? 'InPerson') | translate }}
+          @if (showVideoJoin()) {
+            <div>
+              <button
+                mat-flat-button
+                type="button"
+                class="join"
+                [disabled]="busy()"
+                (click)="joinVideo()"
+              >
+                <mat-icon>videocam</mat-icon>{{ 'drawer.joinVideo' | translate }}
+              </button>
+            </div>
+          }
+        </dd>
+      }
+
+      @if (features.isOn('onlinePayments')) {
+        <dt><mat-icon>payments</mat-icon>{{ 'drawer.payment' | translate }}</dt>
+        <dd>
+          <table class="price" [attr.aria-label]="'drawer.payment' | translate">
+            <tbody>
+              <tr>
+                <th scope="row">{{ 'drawer.price' | translate }}</th>
+                <td class="num">{{ money(a.priceEgp) }} {{ 'common.egp' | translate }}</td>
+              </tr>
+              @if ((a.discountEgp ?? 0) > 0) {
+                <tr>
+                  <th scope="row">{{ 'drawer.discount' | translate }}</th>
+                  <td class="num">- {{ money(a.discountEgp) }} {{ 'common.egp' | translate }}</td>
+                </tr>
+              }
+              <tr class="total">
+                <th scope="row">{{ 'drawer.total' | translate }}</th>
+                <td class="num">{{ money(a.totalEgp) }} {{ 'common.egp' | translate }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="payment-row">
+            <span
+              class="pill"
+              [class.ok]="a.paymentStatus === 'Paid'"
+              [class.warn]="a.paymentStatus === 'Pending'"
+              [class.info]="a.paymentStatus === 'Refunded'"
+              >{{ 'drawer.paymentStatus.' + (a.paymentStatus ?? 'Unpaid') | translate }}</span
+            >
+            @if (canMarkPaid()) {
+              <button mat-flat-button type="button" [disabled]="busy()" (click)="markPaid()">
+                <mat-icon>price_check</mat-icon>{{ 'drawer.markPaid' | translate }}
+              </button>
+            }
+            @if (canRefund()) {
+              <button
+                mat-stroked-button
+                type="button"
+                class="danger-outline"
+                [disabled]="busy()"
+                (click)="refund()"
+              >
+                <mat-icon>undo</mat-icon>{{ 'payments.refund' | translate }}
+              </button>
+            }
+          </div>
+        </dd>
+      }
+
+      @if (features.isOn('insurance') && a.insurance; as ins) {
+        <dt><mat-icon>health_and_safety</mat-icon>{{ 'drawer.insurance' | translate }}</dt>
+        <dd>
+          <div>
+            <span dir="auto">{{ ins.provider.name }}</span> ·
+            <span class="ltr-text">{{ ins.memberNumber }}</span>
+          </div>
+          <span
+            class="pill"
+            [class.ok]="ins.status === 'Approved'"
+            [class.bad]="ins.status === 'Rejected'"
+            [class.warn]="ins.status === 'Pending'"
+            >{{ 'drawer.insuranceStatus.' + ins.status | translate }}</span
+          >
+          @if (ins.note) {
+            <div class="muted" dir="auto">{{ ins.note }}</div>
+          }
+          @if (ins.status === 'Pending') {
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="ins-note">
+              <mat-label>{{ 'drawer.insuranceNote' | translate }}</mat-label>
+              <input matInput maxlength="300" [(ngModel)]="insuranceNote" name="insuranceNote" />
+            </mat-form-field>
+            <div class="payment-row">
+              <button
+                mat-flat-button
+                type="button"
+                class="complete"
+                [disabled]="busy()"
+                (click)="decideInsurance('Approved')"
+              >
+                <mat-icon>check</mat-icon>{{ 'drawer.approve' | translate }}
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                class="danger-outline"
+                [disabled]="busy()"
+                (click)="decideInsurance('Rejected')"
+              >
+                <mat-icon>close</mat-icon>{{ 'drawer.reject' | translate }}
+              </button>
+            </div>
+          }
+        </dd>
+      }
+
+      @if (features.isOn('reviews') && a.review; as review) {
+        <dt><mat-icon>star_rate</mat-icon>{{ 'drawer.review' | translate }}</dt>
+        <dd>
+          <app-rating [value]="review.rating" />
+          @if (review.comment) {
+            <div class="review-comment" dir="auto">{{ review.comment }}</div>
+          }
+        </dd>
+      }
+
+      @if (a.patientNote) {
+        <dt><mat-icon>notes</mat-icon>{{ 'drawer.note' | translate }}</dt>
+        <dd>{{ a.patientNote }}</dd>
+      }
+
+      @if (a.status === 'Cancelled') {
+        <dt><mat-icon>cancel</mat-icon>{{ 'drawer.cancelledBy' | translate }}</dt>
+        <dd>
+          {{ 'drawer.by.' + (a.cancelledBy ?? 'Clinic') | translate }}
+          @if (a.cancelReason) {
+            <div class="muted">{{ a.cancelReason }}</div>
+          }
+        </dd>
+      }
+    </dl>
+
+    @switch (mode()) {
+      @case ('cancel') {
+        <section class="sub" aria-live="polite">
+          <h3>{{ 'drawer.cancelTitle' | translate }}</h3>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'drawer.reason' | translate }}</mat-label>
+            <textarea matInput rows="3" maxlength="500" [(ngModel)]="cancelReason"></textarea>
+          </mat-form-field>
+          <div class="row">
+            <button mat-button type="button" (click)="back()" [disabled]="busy()">
+              {{ 'common.back' | translate }}
+            </button>
+            <button
+              mat-flat-button
+              type="button"
+              class="danger"
+              (click)="submitCancel()"
+              [disabled]="busy()"
+            >
+              {{ 'drawer.confirmCancel' | translate }}
+            </button>
+          </div>
+        </section>
+      }
+      @case ('reject') {
+        <section class="sub" aria-live="polite">
+          <h3>{{ 'drawer.rejectTitle' | translate }}</h3>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'drawer.reason' | translate }}</mat-label>
+            <textarea matInput rows="3" maxlength="500" [(ngModel)]="rejectReason"></textarea>
+          </mat-form-field>
+          <div class="row">
+            <button mat-button type="button" (click)="back()" [disabled]="busy()">
+              {{ 'common.back' | translate }}
+            </button>
+            <button
+              mat-flat-button
+              type="button"
+              class="danger"
+              (click)="submitReject()"
+              [disabled]="busy()"
+            >
+              {{ 'drawer.confirmReject' | translate }}
+            </button>
+          </div>
+        </section>
+      }
+      @case ('correct') {
+        <section class="sub" aria-live="polite">
+          <h3>{{ 'drawer.correctTitle' | translate }}</h3>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'drawer.reason' | translate }}</mat-label>
+            <textarea matInput rows="3" maxlength="500" [(ngModel)]="correctReason"></textarea>
+          </mat-form-field>
+          <div class="row">
+            <button mat-button type="button" (click)="back()" [disabled]="busy()">
+              {{ 'common.back' | translate }}
+            </button>
+            <button mat-flat-button type="button" (click)="submitCorrect()" [disabled]="busy()">
+              {{ 'drawer.correctConfirm' | translate }}
+            </button>
+          </div>
+        </section>
+      }
+      @case ('reschedule') {
+        <section class="sub" aria-live="polite">
+          <h3>{{ 'drawer.rescheduleTitle' | translate }}</h3>
+          <app-slot-picker
+            [slots]="openSlots()"
+            [selectedId]="targetSlot()?.id ?? null"
+            (selected)="targetSlot.set($event)"
+          />
+          <div class="row">
+            <button mat-button type="button" (click)="back()" [disabled]="busy()">
+              {{ 'common.back' | translate }}
+            </button>
+            <button
+              mat-flat-button
+              type="button"
+              (click)="submitReschedule()"
+              [disabled]="busy() || !targetSlot()"
+            >
+              {{ 'drawer.confirmReschedule' | translate }}
+            </button>
+          </div>
+        </section>
+      }
+      @default {
+        @if (actions(); as actions) {
+          @if (hasAnyAction()) {
+            <div class="actions">
+              @if (actions.approve) {
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="complete"
+                  [disabled]="busy()"
+                  (click)="approve()"
+                >
+                  <mat-icon>check_circle</mat-icon>{{ 'drawer.approve' | translate }}
+                </button>
+              }
+              @if (actions.reject) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="danger-outline"
+                  [disabled]="busy()"
+                  (click)="startReject()"
+                >
+                  <mat-icon>close</mat-icon>{{ 'drawer.reject' | translate }}
+                </button>
+              }
+              @if (actions.complete) {
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="complete"
+                  [disabled]="busy()"
+                  (click)="confirmAndRun('complete', 'drawer.complete', 'drawer.completeConfirm')"
+                >
+                  <mat-icon>check_circle</mat-icon>{{ 'drawer.complete' | translate }}
+                </button>
+              }
+              @if (actions.noShow) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="confirmAndRun('noShow', 'drawer.noShow', 'drawer.noShowConfirm')"
+                >
+                  <mat-icon>person_off</mat-icon>{{ 'drawer.noShow' | translate }}
+                </button>
+              }
+              @if (actions.correct) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="startCorrect(actions.correct)"
+                >
+                  <mat-icon>edit_note</mat-icon
+                  >{{
+                    (actions.correct === 'NoShow'
+                      ? 'drawer.correctToNoShow'
+                      : 'drawer.correctToCompleted'
+                    ) | translate
+                  }}
+                </button>
+              }
+              @if (actions.reschedule) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="startReschedule()"
+                >
+                  <mat-icon>event_repeat</mat-icon>{{ 'drawer.reschedule' | translate }}
+                </button>
+              }
+              @if (actions.cancel) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="danger-outline"
+                  [disabled]="busy()"
+                  (click)="startCancel()"
+                >
+                  <mat-icon>event_busy</mat-icon>{{ 'drawer.cancel' | translate }}
+                </button>
+              }
+            </div>
+          } @else {
+            <p class="muted">{{ 'drawer.final' | translate }}</p>
+          }
+        }
+      }
+    }
   }
-  if (status === 'CheckedIn') return { ...NO_ACTIONS, complete: true, noShow: true };
-  if (status === 'InProgress') return { ...NO_ACTIONS, complete: true };
-  if (status !== 'Confirmed') return NO_ACTIONS;
-  const started = now >= DateTime.fromISO(startsAt);
-  return {
-    approve: false,
-    reject: false,
-    reschedule: true,
-    cancel: !started,
-    complete: started,
-    noShow: started,
-    correct: null,
-  };
-}
+</app-drawer>

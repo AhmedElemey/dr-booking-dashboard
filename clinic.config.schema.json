@@ -68,7 +68,8 @@
         "promotions",
         "recallCampaigns",
         "reports",
-        "liveQueue"
+        "liveQueue",
+        "publicPrices"
       ],
       "properties": {
         "mobileApp": { "type": "boolean" },
@@ -92,7 +93,8 @@
         "promotions": { "type": "boolean" },
         "recallCampaigns": { "type": "boolean" },
         "reports": { "type": "boolean" },
-        "liveQueue": { "type": "boolean" }
+        "liveQueue": { "type": "boolean" },
+        "publicPrices": { "type": "boolean" }
       }
     }
   },

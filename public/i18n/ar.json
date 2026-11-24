@@ -58,6 +58,7 @@
     "PlatformAdmin": "مدير المنصة"
   },
   "status": {
+    "Pending": "بانتظار التأكيد",
     "Confirmed": "مؤكد",
     "Completed": "مكتمل",
     "NoShow": "لم يحضر",
@@ -246,6 +247,10 @@
     "insuranceNote": "ملاحظة للمريض (اختياري)",
     "approve": "موافقة",
     "reject": "رفض",
+    "rejectTitle": "رفض الحجز",
+    "confirmReject": "رفض الحجز",
+    "approved": "تم اعتماد الحجز",
+    "rejected": "تم رفض الحجز",
     "insuranceApproved": "تمت الموافقة على التأمين.",
     "insuranceRejected": "تم رفض التأمين.",
     "review": "تقييم المريض",

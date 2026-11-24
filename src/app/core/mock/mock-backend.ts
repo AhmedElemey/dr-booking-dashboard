@@ -445,6 +445,29 @@ export class MockBackend {
     ],
     [
       'POST',
+      /^\/dashboard\/appointments\/([^/]+)\/approve$/,
+      ({ params, role }) => {
+        const a = this.appointmentOrThrow(params[0], role);
+        if (a.status !== 'Pending') throw new ApiError(409, 'INVALID_TRANSITION');
+        this.setStatus(a, 'Confirmed');
+        return this.dto(a);
+      },
+    ],
+    [
+      'POST',
+      /^\/dashboard\/appointments\/([^/]+)\/reject$/,
+      ({ params, body, role }) => {
+        const a = this.appointmentOrThrow(params[0], role);
+        if (a.status !== 'Pending') throw new ApiError(409, 'INVALID_TRANSITION');
+        this.setStatus(a, 'Cancelled');
+        a.cancelledBy = 'Clinic';
+        a.cancelReason = (body['reason'] as string | null) ?? null;
+        this.state.slots.find((s) => s.id === a.slotId)!.status = 'Open';
+        return this.dto(a);
+      },
+    ],
+    [
+      'POST',
       /^\/dashboard\/appointments\/([^/]+)\/complete$/,
       ({ params, role }) => this.finish(params[0], role, 'Completed'),
     ],

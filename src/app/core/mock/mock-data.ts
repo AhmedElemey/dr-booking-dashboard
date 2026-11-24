@@ -269,6 +269,9 @@ const APPOINTMENTS: [
   [0, -1, 2, 2, 'Completed', 'sv-2', null],
   [0, 3, 0, 3, 'Confirmed', 'sv-1', null],
   [1, -1, 1, 4, 'NoShow', 'sv-4', null],
+  // Pending bookings waiting for the clinic to approve or reject them.
+  [0, 1, 3, 8, 'Pending', 'sv-1', 'إعادة كشف'],
+  [2, 2, 2, 10, 'Pending', 'sv-6', null],
   // liveQueue: one visit with the doctor and one checked-in patient, both today.
   [1, 0, 1, 9, 'InProgress', 'sv-3', null],
   [0, 0, 5, 10, 'CheckedIn', 'sv-2', null],
@@ -312,8 +315,7 @@ export function createMockState(now: DateTime = DateTime.now()): MockState {
       patientNote: note,
       cancelledBy: status === 'Cancelled' ? 'Patient' : null,
       cancelReason: status === 'Cancelled' ? 'Travelling that day' : null,
-      checkedInAt:
-        status === 'CheckedIn' || status === 'InProgress' ? slot.startsAt : null,
+      checkedInAt: status === 'CheckedIn' || status === 'InProgress' ? slot.startsAt : null,
       startedAt: status === 'InProgress' ? slot.startsAt : null,
     });
   });

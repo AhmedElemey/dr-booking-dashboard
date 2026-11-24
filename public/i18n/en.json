@@ -58,6 +58,7 @@
     "PlatformAdmin": "Platform admin"
   },
   "status": {
+    "Pending": "Pending",
     "Confirmed": "Confirmed",
     "Completed": "Completed",
     "NoShow": "No-show",
@@ -246,6 +247,10 @@
     "insuranceNote": "Note for the patient (optional)",
     "approve": "Approve",
     "reject": "Reject",
+    "rejectTitle": "Reject booking",
+    "confirmReject": "Reject booking",
+    "approved": "Booking approved",
+    "rejected": "Booking rejected",
     "insuranceApproved": "Insurance approved.",
     "insuranceRejected": "Insurance rejected.",
     "review": "Patient review",

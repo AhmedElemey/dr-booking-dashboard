@@ -21,6 +21,10 @@ import { AppointmentStatus, SlotStatus } from '../core/api/models';
       font-weight: 500;
       white-space: nowrap;
     }
+    .chip-pending {
+      background: var(--ml-noshow-bg);
+      color: var(--ml-noshow);
+    }
     .chip-confirmed,
     .chip-reserved {
       background: var(--ml-confirmed-bg);

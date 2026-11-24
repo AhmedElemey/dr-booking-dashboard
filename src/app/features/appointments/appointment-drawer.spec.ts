@@ -95,6 +95,67 @@ describe('AppointmentDrawer', () => {
     expect(el.textContent).toContain(en.drawer.final);
   });
 
+  it('a pending booking offers approve and reject only', async () => {
+    const { buttons } = await open('2026-11-02T08:00:00', appointment({ status: 'Pending' }));
+    const text = buttons().join('|');
+    expect(text).toContain(en.drawer.approve);
+    expect(text).toContain(en.drawer.reject);
+    expect(text).not.toContain(en.drawer.reschedule);
+    expect(text).not.toContain(en.drawer.complete);
+  });
+
+  it('approves a pending booking through the approve endpoint', async () => {
+    const { fixture, el, host } = await open(
+      '2026-11-02T08:00:00',
+      appointment({ status: 'Pending' }),
+    );
+    [...el.querySelectorAll<HTMLButtonElement>('.actions button')]
+      .find((b) => b.textContent!.includes(en.drawer.approve))!
+      .click();
+
+    const req = backend.expectOne(`${API_ROOT}/dashboard/appointments/a1/approve`);
+    expect(req.request.method).toBe('POST');
+    req.flush(appointment({ status: 'Confirmed' }));
+    backend
+      .expectOne(`${API_ROOT}/dashboard/appointments/a1`)
+      .flush(appointment({ status: 'Confirmed' }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(host.changes()).toBe(1);
+    expect(el.textContent).toContain(en.status.Confirmed);
+  });
+
+  it('rejects a pending booking with a reason', async () => {
+    const { fixture, el, host } = await open(
+      '2026-11-02T08:00:00',
+      appointment({ status: 'Pending' }),
+    );
+    [...el.querySelectorAll<HTMLButtonElement>('.actions button')]
+      .find((b) => b.textContent!.includes(en.drawer.reject))!
+      .click();
+    fixture.detectChanges();
+    const textarea = el.querySelector('textarea')!;
+    textarea.value = 'Doctor is on leave';
+    textarea.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    el.querySelector<HTMLButtonElement>('.row .danger')!.click();
+
+    const req = backend.expectOne(`${API_ROOT}/dashboard/appointments/a1/reject`);
+    expect(req.request.body).toEqual({ reason: 'Doctor is on leave' });
+    req.flush(appointment({ status: 'Cancelled', cancelledBy: 'Clinic' }));
+    backend.expectOne(`${API_ROOT}/dashboard/appointments/a1`).flush(
+      appointment({
+        status: 'Cancelled',
+        cancelledBy: 'Clinic',
+        cancelReason: 'Doctor is on leave',
+      }),
+    );
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(host.changes()).toBe(1);
+    expect(el.textContent).toContain(en.status.Cancelled);
+  });
+
   it('a recently completed visit offers a correction to no-show with a reason', async () => {
     const { fixture, el, buttons } = await open(
       '2026-11-02T10:00:00',

@@ -43,6 +43,21 @@ export class AppointmentsApi {
     });
   }
 
+  /** Approve a Pending booking (Pending to Confirmed); the patient is notified. */
+  approve(id: string): Observable<DashboardAppointment> {
+    return this.http.post<DashboardAppointment>(
+      apiUrl(`/dashboard/appointments/${id}/approve`),
+      {},
+    );
+  }
+
+  /** Reject a Pending booking: cancelled by the clinic with an optional reason; the patient is notified. */
+  reject(id: string, reason?: string): Observable<DashboardAppointment> {
+    return this.http.post<DashboardAppointment>(apiUrl(`/dashboard/appointments/${id}/reject`), {
+      reason: reason || null,
+    });
+  }
+
   complete(id: string): Observable<DashboardAppointment> {
     return this.http.post<DashboardAppointment>(
       apiUrl(`/dashboard/appointments/${id}/complete`),

@@ -46,9 +46,9 @@ export function isHttpsUrl(value: string | null | undefined): boolean {
   }
 }
 
-type Mode = 'view' | 'cancel' | 'reschedule' | 'correct';
+type Mode = 'view' | 'cancel' | 'reschedule' | 'reject' | 'correct';
 
-/** Appointment detail with every status action: reschedule, cancel (with reason), complete, no-show. */
+/** Appointment detail with every status action: approve/reject (Pending), reschedule, cancel (with reason), complete, no-show. */
 @Component({
   selector: 'app-appointment-drawer',
   imports: [
@@ -92,6 +92,7 @@ export class AppointmentDrawer implements OnInit {
   protected readonly busy = signal(false);
   protected readonly mode = signal<Mode>('view');
   protected cancelReason = '';
+  protected rejectReason = '';
   protected insuranceNote = '';
   protected correctReason = '';
   protected readonly correctTarget = signal<'Completed' | 'NoShow' | null>(null);
@@ -156,6 +157,28 @@ export class AppointmentDrawer implements OnInit {
   }
 
   // ---- actions ----
+
+  /** Approve a Pending booking: straight through, no confirm dialog (nothing is lost). */
+  protected approve(): void {
+    const appointment = this.appointment();
+    if (!appointment) return;
+    this.busy.set(true);
+    this.api.approve(appointment.id).subscribe(this.afterChange('drawer.approved'));
+  }
+
+  protected startReject(): void {
+    this.rejectReason = '';
+    this.mode.set('reject');
+  }
+
+  protected submitReject(): void {
+    const appointment = this.appointment();
+    if (!appointment) return;
+    this.busy.set(true);
+    this.api
+      .reject(appointment.id, this.rejectReason.trim())
+      .subscribe(this.afterChange('drawer.rejected'));
+  }
 
   protected confirmAndRun(kind: 'complete' | 'noShow', titleKey: string, messageKey: string): void {
     const appointment = this.appointment();

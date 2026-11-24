@@ -5,9 +5,20 @@ import { TestBed } from '@angular/core/testing';
 
 import en from '../../../../public/i18n/en.json';
 import { provideFixedClock, provideTestTranslations } from '../../../testing/test-providers';
-import { DashboardAppointment } from '../../core/api/models';
+import { CurrentUser, DashboardAppointment } from '../../core/api/models';
+import { AuthService } from '../../core/auth/auth.service';
 import { API_ROOT } from '../../core/config/api-url';
 import { AppointmentDrawer } from './appointment-drawer';
+
+const clinicAdmin: CurrentUser = {
+  id: 'u1',
+  phone: '+201000000001',
+  fullName: 'Admin',
+  role: 'ClinicStaff',
+  preferredLanguage: 'en',
+  clinicId: 'c1',
+  isClinicAdmin: true,
+};
 
 const appointment = (over: Partial<DashboardAppointment> = {}): DashboardAppointment => ({
   id: 'a1',
@@ -33,7 +44,7 @@ class Host {
 describe('AppointmentDrawer', () => {
   let backend: HttpTestingController;
 
-  async function open(now: string, a: DashboardAppointment) {
+  async function open(now: string, a: DashboardAppointment, user: CurrentUser = clinicAdmin) {
     TestBed.configureTestingModule({
       imports: [Host],
       providers: [
@@ -44,6 +55,7 @@ describe('AppointmentDrawer', () => {
       ],
     });
     backend = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).user.set(user);
     const fixture = TestBed.createComponent(Host);
     fixture.detectChanges();
     backend.expectOne(`${API_ROOT}/dashboard/appointments/a1`).flush(a);
@@ -106,9 +118,9 @@ describe('AppointmentDrawer', () => {
     const req = backend.expectOne(`${API_ROOT}/dashboard/appointments/a1/correct-status`);
     expect(req.request.body).toEqual({ toStatus: 'NoShow', reason: 'Patient arrived late' });
     req.flush(appointment({ status: 'NoShow' }));
-    backend.expectOne(`${API_ROOT}/dashboard/appointments/a1`).flush(
-      appointment({ status: 'NoShow' }),
-    );
+    backend
+      .expectOne(`${API_ROOT}/dashboard/appointments/a1`)
+      .flush(appointment({ status: 'NoShow' }));
     await fixture.whenStable();
   });
 
@@ -139,5 +151,22 @@ describe('AppointmentDrawer', () => {
     fixture.detectChanges();
     expect(host.changes()).toBe(1);
     expect(el.textContent).toContain(en.status.Cancelled);
+  });
+
+  it('reception staff who are not clinic admins get no correction button', async () => {
+    const { buttons } = await open('2026-11-02T10:00:00', appointment({ status: 'Completed' }), {
+      ...clinicAdmin,
+      isClinicAdmin: false,
+    });
+    expect(buttons().join('|')).not.toContain(en.drawer.correctToNoShow);
+  });
+
+  it('a doctor can correct a closed visit', async () => {
+    const { buttons } = await open('2026-11-02T10:00:00', appointment({ status: 'Completed' }), {
+      ...clinicAdmin,
+      role: 'Doctor',
+      isClinicAdmin: undefined,
+    });
+    expect(buttons().join('|')).toContain(en.drawer.correctToNoShow);
   });
 });

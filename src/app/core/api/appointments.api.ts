@@ -65,7 +65,7 @@ export class AppointmentsApi {
     );
   }
 
-  /** Q5: correct a mistaken Completed/NoShow within 24 hours; a corrected no-show refunds the online payment. */
+  /** Q5: correct a mistaken Completed/NoShow within 24 hours. A correction refunds nothing. */
   correctStatus(
     id: string,
     toStatus: 'Completed' | 'NoShow',
@@ -108,9 +108,6 @@ export class AppointmentsApi {
 
   /** liveQueue: start a checked-in visit (CheckedIn to InProgress). One patient per doctor. */
   start(id: string): Observable<DashboardAppointment> {
-    return this.http.post<DashboardAppointment>(
-      apiUrl(`/dashboard/appointments/${id}/start`),
-      {},
-    );
+    return this.http.post<DashboardAppointment>(apiUrl(`/dashboard/appointments/${id}/start`), {});
   }
 }

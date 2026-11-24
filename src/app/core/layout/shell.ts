@@ -112,6 +112,14 @@ export class Shell implements OnInit {
         feature: 'waitingList',
       },
       {
+        labelKey: 'nav.queue',
+        icon: 'format_list_numbered',
+        group: 'today',
+        link: '/queue',
+        roles: STAFF_ROLES,
+        feature: 'liveQueue',
+      },
+      {
         labelKey: 'nav.patients',
         icon: 'folder_shared',
         group: 'patients',
